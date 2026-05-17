@@ -58,21 +58,21 @@ const UserSchema = new Schema({
 },{timestamps: true});
 
 // Hash password before saving
-UserSchema.pre("save",async function(next) {
+UserSchema.pre("save", async function(next) {
     const user = this;
     try {
         if(!user.isModified("password")) {
-         next();
+            return next();
         }else {
-        const salt = await bcrypt.genSalt(10);
-            const hash = await bcrypt.hash(user.password,salt);
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(user.password, salt);
             user.password = hash;
-            next();
+            return next();
         }
-    }catch(err) {
-        console.error(err);
-    }});
-               
+    } catch(err) {
+        return next(err);
+    }
+});      
 // Static method for login
  UserSchema.statics.login = async function(email,password) {
     const model = this;
