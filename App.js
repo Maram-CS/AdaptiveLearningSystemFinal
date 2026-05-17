@@ -46,6 +46,9 @@ App.use(express.static(join(__dirname, "Public")));
 App.use("/auth", RouterLogin);
 App.use("/App", authRequest, AppRouter);
 App.use("/profile", authRequest, profileRouter);
+App.get("/", (req, res) => {
+    res.redirect("/home");
+});
 App.use("/", publicRouter);
 App.use("/courses", coursesRouter);
 App.use("/teacherDashboard", authRequest, teacherDashboardRouter);
