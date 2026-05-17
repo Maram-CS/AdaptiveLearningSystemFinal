@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduphin | Teacher Dashboard</title>
+    <link rel="stylesheet" href="/Style/teacherdashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- SIDEBAR  -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img" alt="logo">
+            <span>Eduphin</span>
+        </div>
+        <div class="menu">
+            <ul>
+                <li class="active">Home</li>
+                  <li><a href="/profile/Profile-view">My Profile</a></li>
+                 <li><a href="/App/createCourse">Create Course </a></li>
+                <li><a href="/App/studentAnalytics">Student Analytics</a></li>
+            </ul>
+        </div>
+       <br> <br> <br> <br> <br>  
+        <a href="/home">
+    <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="main-header">
+            <h2>Teacher <span>Dashboard</span></h2>
+            <div class="header-actions">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Search for courses...">
+                <div class="buttons">
+                   <a href="/profile/Profile-view"><button class="icon-btn" onclick="getProfile">👤</button></a>
+                </div> 
+    </div>
+</div>
+<br>
+<!-- Welcome -->
+    <div class="welcome">
+      <div>
+        <h2>Welcome, Professor
+        <%= user.userName %> 👋 </h2>
+        <p>Shape the future of learning by building interactive courses, <br> adapting content to every student, and unlocking powerful insights.</p>
+      </div>
+    </div>
+    
+    <!-- Overview -->
+
+<br>
+
+    <h3>Overview</h3>
+
+<div class="dashboard-container">
+
+  <div class="cards">
+
+    <!-- CARD 1 -->
+    <div class="card">
+      <div class="feature-icon icon-blue">
+        <i class="fa-solid fa-book"></i>
+      </div>
+      <h4> <span class="orange">Total</span> <span class="blue">Courses</span></h4>
+      <p class="big"><%= totalCourses %></p>
+       <span class="small-text">Courses created</span>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="card">
+      <div class="feature-icon icon-orange">
+        <i class="fa-solid fa-clipboard-list"></i>
+      </div>
+      <h4> <span class="orange"> Quiz </span> <span class="blue"> Repository</span></h4>
+      <p class="big"><%= totalQuizzes %></p>
+       <span class="small-text">Available quizzes</span>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="card">
+      <div class="feature-icon icon-cryan">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <h4><span class="orange">Total</span> <span class="blue">Students</span></h4>
+      <p class="big"><%= totalStudents %></p>
+       <span class="small-text">Active learners</span>
+    </div>
+
+  </div>
+</div>
+
+<br>
+
+<!-- COURSES -->
+<h3>Course Section</h3>
+
+<div class="courses">
+
+<% if (courses && courses.length > 0) { %>
+
+  <% courses.forEach(course => { %>
+
+    <div class="course">
+
+      <% if (course.averageRating >= 4) { %>
+        <span class="badge-top">🔥 Top Rated</span>
+      <% } %>
+
+      <h4><%= course.Title %></h4>
+
+      <img src="<%= course.image %>" class="course-img">
+         <div class="buttons">
+
+        <button onclick="getCourse('<%= course.slug %>')">
+          Edit
+        </button>
+
+        <button onclick="deleteCourse('<%= course.slug %>')">
+          Delete
+        </button>
+        
+        <button class="content-btn" onclick="window.location.href='/courses/content/<%= course.slug %>'">
+          Content
+        </button>
+      </div>
+
+      <%
+        let ratingClass = "low";
+        if (course.averageRating >= 4) ratingClass = "good";
+        else if (course.averageRating >= 3) ratingClass = "mid";
+      %>
+
+      <p class="rating <%= ratingClass %>">
+        ⭐ <%= course.averageRating %> / 5
+      </p>
+
+      <p>
+        (<%= course.ratingsCount %> ratings)
+      </p>
+
+      <p class="insight">
+  👥 <%= course.ratingsCount %> reviews •
+  <% if (course.averageRating >= 4) { %>
+    Excellent performance 🚀
+  <% } else if (course.averageRating >= 3) { %>
+    Stable course 📈
+  <% } else if (course.ratingsCount > 0) { %>
+    Low satisfaction ⚠️
+  <% } else { %>
+    No student feedback yet
+  <% } %>
+</p>
+
+    </div>
+
+  <% }) %>
+
+<% } else { %>
+
+  <div class="empty-state">
+    <h3>No Courses yet </h3>
+    <div class="empty-icon">💔</div>
+    <a href="/App/createCourse" class="browse-btn">Create Course</a>
+  </div>
+
+<% } %>
+
+</div>
+ <!-- FOOTER -->
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+</div>
+</div>
+
+<!-- SCRIPT -->
+<script>
+
+// safe fix (no crash)
+const teacherNameEl = document.getElementById("teacherName");
+if (teacherNameEl) {
+  teacherNameEl.innerText = "Welcome, Professor <%= user.userName %> 👋";
+}
+
+// delete course
+const deleteCourse = async (slug) => {
+  try {
+
+    const ok = confirm("Are you sure you want to delete this course?");
+    if (!ok) return;
+
+    const res = await fetch(`/courses/delete/${slug}`, {
+      method: "POST",
+      credentials: "include"// to include cookies for auth
+    });
+
+    const data = await res.json();
+
+    if (data.message === "Course deleted successfully") {
+      alert("Course deleted successfully");
+      window.location.reload();
+      return;
+    }
+
+    if (data.message === "Course not found") {
+      alert("Course not found");
+      return;
+    }
+
+    if (data.message === "Not authorized to delete this course") {
+      alert("Not authorized");
+      return;
+    }
+
+    alert("Something went wrong");
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+};
+
+const getCourse = async (slug) => {
+ window.location.href = `/courses/getCourse/${slug}`;
+}
+
+const teacherSearchInput = document.getElementById('searchInput');
+if (teacherSearchInput) {
+    teacherSearchInput.addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('.course').forEach(card => {
+            card.style.display = card.textContent.toLowerCase().includes(filter) ? 'block' : 'none';
+        });
+    });
+}
+
+</script>
+
+</body>
+</html>

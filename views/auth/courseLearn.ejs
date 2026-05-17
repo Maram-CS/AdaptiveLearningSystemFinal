@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= course.Title %> | Course Learning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --blue-light: #deeaf9;
+  --blue-main:  #2b7de9;
+  --blue-dark:  #053672;
+  --orange:     #f4a640;
+  --navy:       #0c1e36;
+  --text-dark:  #1f2d3d;
+  --text-muted: #555;
+  --bg-light:   #f8fbff;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+body { background:var(--bg-light); color:var(--text-dark); line-height:1.6; }
+.page-container { display:flex; min-height:100vh; }
+
+/* ─── SIDEBAR ─────────────────────────────────────── */
+.sidebar {
+  width: 260px; background: var(--navy); color: white;
+  display: flex; flex-direction: column; padding: 30px 20px;
+  gap: 30px; position: fixed; top: 0; left: 0;
+  height: 100vh; transition: transform 0.3s ease; z-index: 999;
+}
+.sidebar .logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 18px; color: white;
+  padding: 8px 12px; border-radius: 40px;
+  transition: all 0.3s ease; cursor: pointer;
+}
+.sidebar .logo:hover { background: rgba(255,255,255,0.1); transform: translateX(3px); }
+.sidebar .logo .logo-img { width: 40px; height: auto; }
+.sidebar .menu ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.sidebar .menu ul li {
+  padding: 12px 16px; border-radius: 12px; cursor: pointer;
+  font-weight: 500; color: rgba(255,255,255,0.75);
+  transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.sidebar .menu ul li.active { background: var(--blue-main); color: white; }
+.sidebar .menu ul li a { text-decoration: none; color: inherit; display: block; position: relative; z-index: 1; }
+.sidebar .logout {
+  margin-top: auto; background: var(--orange); border: none;
+  padding: 10px 20px; border-radius: 20px; color: var(--navy);
+  font-weight: 700; cursor: pointer; font-size: 15px;
+  transition: all 0.3s; width: 100%; text-align: center;
+  text-decoration: none; display: inline-block;
+}
+.sidebar .logout:hover { background: var(--blue-main); color: white; transform: translateY(-2px); }
+
+.lesson-list-item {
+  padding:10px 12px; border-radius:8px; cursor:pointer;
+  transition:0.3s; display:flex; gap:10px; align-items:center;
+  font-size:13px; color:rgba(255,255,255,0.75);
+}
+.lesson-list-item:hover    { background:rgba(255,255,255,0.1); }
+.lesson-list-item.completed{ color:#10B981; }
+
+/* ─── MAIN ─── */
+.main { margin-left:260px; flex:1; padding:30px 40px; overflow-y:auto; height:100vh; }
+.main-header {
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--blue-light); padding:18px 25px;
+  border-radius:14px; margin-bottom:25px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.main-header h2 { font-size:22px; color:var(--blue-dark); }
+.main-header h2 span { color:var(--orange); text-transform:capitalize; }
+.level-badge {
+  background:var(--blue-main); color:white;
+  padding:6px 16px; border-radius:20px;
+  font-size:12px; font-weight:600; text-transform:capitalize;
+}
+
+/* ─── SIDEBAR ─────────────────────────────────────── */
+.sidebar {
+  width: 260px;
+  background: var(--navy);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  gap: 30px;
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+
+.sidebar .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 40px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.sidebar .logo:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateX(3px);
+}
+
+.sidebar .logo .logo-img {
+  width: 40px;
+  height: auto;
+}
+
+.sidebar .menu ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar .menu ul li {
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar .menu ul li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(43,125,233,0.3), transparent);
+  transition: left 0.4s ease;
+}
+
+.sidebar .menu ul li:hover::before {
+  left: 100%;
+}
+
+.sidebar .menu ul li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px;
+  height: 60%;
+  background: var(--orange);
+  border-radius: 3px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar .menu ul li:hover::after {
+  transform: translateY(-50%) scaleY(1);
+}
+
+.sidebar .menu ul li.active {
+  background: var(--blue-main);
+  color: white;
+}
+
+.sidebar .menu ul li.active::after {
+  transform: translateY(-50%) scaleY(1);
+  background: white;
+}
+
+.sidebar .menu ul li a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar .logout {
+  margin-top: auto;
+  background: var(--orange);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: var(--navy);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar .logout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.4s;
+}
+
+.sidebar .logout:hover::before {
+  left: 100%;
+}
+
+.sidebar .logout:hover {
+  background: var(--blue-main);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(43,125,233,0.4);
+}
+
+/* ─── CARDS ─── */
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-compact-card {
+  display:flex; align-items:center; justify-content:space-between;
+  background:white; border-radius:14px; padding:16px 20px;
+  margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  transition:all 0.2s ease; border-left:4px solid var(--blue-light);
+}
+.lesson-compact-card:hover { transform:translateX(4px); box-shadow:0 6px 14px rgba(0,0,0,0.08); border-left-color:var(--orange); }
+.lesson-compact-card.lesson-completed { border-left-color:#10B981; background:#f9fffc; }
+.lesson-info { display:flex; flex-direction:column; gap:6px; }
+.lesson-title { font-weight:700; font-size:16px; color:var(--blue-dark); }
+.lesson-meta { display:flex; gap:12px; font-size:12px; color:var(--text-muted); }
+.lesson-meta i { margin-right:4px; font-size:11px; }
+.lesson-actions { display:flex; gap:10px; align-items:center; }
+.btn-view {
+  background:var(--blue-main); color:white; border:none;
+  padding:6px 16px; border-radius:30px; font-size:12px;
+  font-weight:600; cursor:pointer; transition:all 0.2s;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn-view:hover { background:var(--orange); transform:translateY(-1px); }
+.btn-complete {
+  background:#e9ecef; color:#2c3e50; border:none;
+  padding:6px 16px; border-radius:30px; font-size:12px;
+  font-weight:600; cursor:pointer; transition:all 0.2s;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn-complete:hover { background:#10B981; color:white; }
+.completed-badge-sm {
+  background:#d1fae5; color:#065f46; padding:6px 14px;
+  border-radius:30px; font-size:12px; font-weight:600;
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+.item {
+  background:white; border-radius:15px; padding:22px 18px 16px;
+  display:flex; flex-direction:column; gap:8px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+  transition:transform 0.3s,box-shadow 0.3s;
+  border-top:4px solid var(--blue-light);
+  animation:cardIn 0.4s ease both; margin-bottom:22px;
+}
+.item:hover { transform:translateY(-4px); box-shadow:0 15px 30px rgba(43,125,233,0.12); border-top-color:var(--orange); }
+.item.quiz-section { border-top-color:var(--orange); }
+
+.view-details-btn {
+  padding:8px 18px; background:var(--blue-main); color:white;
+  border:none; border-radius:20px; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all 0.3s ease; display:inline-block;
+}
+.view-details-btn:hover { background:var(--orange); transform:translateY(-2px); }
+
+/* ─── COMPLETION BANNER ─── */
+.completion-banner {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: white; border-radius: 16px; padding: 32px;
+  text-align: center; margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(16,185,129,0.3);
+  animation: cardIn 0.5s ease both;
+}
+.completion-banner h2 { font-size: 28px; margin-bottom: 8px; }
+.completion-banner p { font-size: 15px; opacity: 0.9; margin-bottom: 20px; }
+.completion-banner .go-back-btn {
+  background: white; color: #059669; border: none;
+  padding: 12px 28px; border-radius: 30px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all 0.3s; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.completion-banner .go-back-btn:hover {
+  background: var(--navy); color: white; transform: translateY(-2px);
+}
+
+.quiz-question { background:#f4f7fb; padding:16px; border-radius:10px; margin-bottom:14px; }
+.quiz-option {
+  display:flex; align-items:center; gap:10px;
+  margin-top:8px; font-size:14px; color:var(--text-dark); cursor:pointer;
+}
+.quiz-option input { accent-color:var(--blue-main); }
+.result-banner {
+  display:flex; align-items:flex-start; gap:16px;
+  padding:18px 20px; border-radius:12px;
+  font-size:14px; font-weight:500;
+}
+.result-banner.success { background:#d1fae5; color:#065f46; }
+.result-banner.error   { background:#fee2e2; color:#991b1b; }
+
+@media (max-width:900px) { .sidebar { transform:translateX(-260px); } .main { margin-left:0; } }
+@media (max-width:768px) { .main { padding:20px; } }
+</style>
+</head>
+<body>
+
+<div class="page-container">
+
+<div class="sidebar">
+  <div class="logo">
+    <img src="/img/logoBleu.png" class="logo-img" alt="Eduphin logo">
+    <span>My Courses</span>
+  </div>
+  <div class="menu">
+    <ul>
+      <li><a href="/courses/All">All Courses</a></li>
+      <li><a href="/studentDashboard/">Dashboard</a></li>
+      <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+      <li><a href="/profile/Profile-view">My Profile</a></li>
+    </ul>
+  </div>
+  <div class="lessons-list" style="margin-top:20px;">
+    <h4 style="color:var(--blue-light);margin-bottom:10px;" id="sidebarLevelTitle">
+      <%= currentLevel.toUpperCase() %> Lessons
+    </h4>
+    <div id="sidebarLessonsList"></div>
+  </div>
+  <a href="/home" class="logout">
+    <i class="fas fa-sign-out-alt"></i> Sign out
+  </a>
+</div>
+
+<div class="main">
+  <div class="main-header">
+    <h2><%= course.Title %> — <span id="headerLevelLabel"><%= currentLevel %></span></h2>
+    <span class="level-badge" id="levelBadge"><%= currentLevel %></span>
+  </div>
+
+  <div id="lessonsContainer"></div>
+  <div id="levelActionArea"></div>
+</div>
+
+<!-- Modal for lesson content -->
+<div id="lessonModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:10000; justify-content:center; align-items:center;">
+  <div style="background:white; width:85%; max-width:1000px; border-radius:24px; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; background:var(--navy); color:white;">
+      <h3 id="modalTitle" style="font-size:18px;">Lesson Content</h3>
+      <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+    </div>
+    <div id="modalBody" style="padding:24px; min-height:400px; max-height:70vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<script>
+
+
+var completedIds = <%- JSON.stringify(completedLessonIds) %>;
+var totalLessons = <%= currentLessons.length %>;
+var currentLessonsData = <%- JSON.stringify(currentLessons) %>;
+
+const APP = {
+  courseId: '<%= course._id %>',
+  courseSlug: '<%= course.slug %>',
+  currentLevel: '<%= currentLevel %>',
+  completedIds: completedIds,
+  totalLessons: totalLessons,
+  levels: ['beginner', 'intermediate', 'advanced']
+};
+
+let completedCount = APP.completedIds.length;
+
+/* ── INIT ── */
+function init() {
+    renderLessons(currentLessonsData);
+    renderSidebar(currentLessonsData);
+    if (completedCount >= APP.totalLessons && APP.totalLessons > 0) {
+        checkAndShowQuiz();
+    }
+}
+init();
+
+/*  RENDER LESSONS */
+function renderLessons(lessons) {
+    const container = document.getElementById('lessonsContainer');
+    container.innerHTML = '';
+    lessons.forEach((lesson, idx) => {
+        const isCompleted = APP.completedIds.includes(lesson._id);
+        const lessonType  = lesson.type === 'pdf' ? 'PDF' : (lesson.type === 'video' ? 'Video' : 'Lesson');
+        container.innerHTML += `
+            <div id="lesson-${lesson._id}" class="lesson-compact-card ${isCompleted ? 'lesson-completed' : ''}">
+                <div class="lesson-info">
+                    <div class="lesson-title">Lesson ${idx+1}: ${escapeHtml(lesson.name)}</div>
+                    <div class="lesson-meta"><span><i class="fas fa-file-alt"></i> ${lessonType} · ${APP.currentLevel}</span></div>
+                </div>
+                <div class="lesson-actions">
+                    <button class="btn-view" onclick="viewLesson('${lesson._id}','${lesson.type}','${escapeAttr(lesson.file)}','${escapeAttr(lesson.name)}')">
+                        <i class="fas fa-eye"></i> View Lesson
+                    </button>
+                    ${!isCompleted
+                        ? `<button class="btn-complete" onclick="completeLesson('${lesson._id}',this)"><i class="fas fa-check"></i> Mark as Completed</button>`
+                        : `<span class="completed-badge-sm"><i class="fas fa-check-circle"></i> Completed</span>`
+                    }
+                </div>
+            </div>`;
+    });
+}
+
+/* ── RENDER SIDEBAR ── */
+function renderSidebar(lessons) {
+    const list = document.getElementById('sidebarLessonsList');
+    list.innerHTML = '';
+    lessons.forEach((lesson, idx) => {
+        const isCompleted = APP.completedIds.includes(lesson._id);
+        list.innerHTML += `
+            <div class="lesson-list-item ${isCompleted ? 'completed' : ''}" id="sidebar-${lesson._id}" onclick="scrollToLesson('${lesson._id}')">
+                <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i>
+                <span>Lesson ${idx+1}: ${escapeHtml(lesson.name)}</span>
+            </div>`;
+    });
+}
+
+/* ── VIEW LESSON ── */
+function viewLesson(lessonId, lessonType, fileUrl, lessonName) {
+    const modal = document.getElementById('lessonModal');
+    const modalBody = document.getElementById('modalBody');
+    document.getElementById('modalTitle').innerText = lessonName;
+
+    if (lessonType === 'video') {
+        modalBody.innerHTML = `<video src="${fileUrl}" controls autoplay style="width:100%;border-radius:12px;"></video>`;
+    } else if (lessonType === 'pdf' || fileUrl.toLowerCase().includes('.pdf')) {
+        window.open(fileUrl, '_blank');
+        trackLessonOpen(lessonId);
+        closeModal();
+        return;
+    } else {
+        modalBody.innerHTML = `<iframe src="${fileUrl}" style="width:100%;height:500px;border:none;"></iframe>`;
+    }
+    modal.style.display = 'flex';
+    // Track streak: every time the student opens/views a lesson, record activity for today
+    trackLessonOpen(lessonId);
+    // ensure only one request runs at a time (avoid duplicate rapid clicks)
+    // (backend will upsert/overwrite progress)
+
+}
+
+
+
+async function trackLessonOpen(lessonId) {
+    try {
+        const res = await fetch('/courses/api/open-lesson', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId: APP.courseId, lessonId })
+        });
+
+        const data = await res.json().catch(() => null);
+        console.log('open-lesson response:', res.status, data);
+    } catch (err) {
+        console.error('trackLessonOpen error:', err);
+    }
+}
+
+
+function closeModal() {
+    document.getElementById('lessonModal').style.display = 'none';
+}
+
+/* ── COMPLETE LESSON ── */
+async function completeLesson(lessonId, btn) {
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    console.log('Completing lesson:', { lessonId, courseId: APP.courseId });
+
+    try {
+        const res  = await fetch('/courses/api/complete-lesson', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId: APP.courseId, lessonId })
+        });
+
+        console.log('Response status:', res.status);
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('HTTP Error:', res.status, errorText);
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        console.log('Response data:', data);
+
+        if (data.success) {
+            const card = document.getElementById(`lesson-${lessonId}`);
+            if (card) {
+                card.classList.add('lesson-completed');
+                const actionsDiv = card.querySelector('.lesson-actions');
+                const viewBtn    = actionsDiv.querySelector('.btn-view');
+                actionsDiv.innerHTML  = viewBtn.outerHTML;
+                actionsDiv.innerHTML += `<span class="completed-badge-sm"><i class="fas fa-check-circle"></i> Completed</span>`;
+            }
+            const sidebarItem = document.getElementById(`sidebar-${lessonId}`);
+            if (sidebarItem) {
+                sidebarItem.classList.add('completed');
+                sidebarItem.querySelector('i').className = 'fas fa-check-circle';
+            }
+
+            completedCount++;
+            if (completedCount >= APP.totalLessons) {
+                await checkAndShowQuiz();
+            }
+
+            showToast('✅ Lesson completed successfully!');
+        } else {
+            throw new Error(data.message || 'Failed to complete lesson');
+        }
+    } catch(err) {
+        console.error('Complete lesson error:', err);
+        showToast('❌ Failed to complete lesson. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
+}
+
+/* ── CHECK & SHOW QUIZ ── */
+/* ── CHECK & SHOW QUIZ ── */
+async function checkAndShowQuiz() {
+    try {
+        const res  = await fetch(`/courses/api/level-quiz?courseId=${APP.courseId}&level=${APP.currentLevel}`);
+        const data = await res.json();
+        const area = document.getElementById('levelActionArea');
+
+        if (data.quiz && !data.quizPassed) {
+            showQuizForm(data.quiz);
+        } else if (data.quizPassed) {
+            const nextIdx = APP.levels.indexOf(APP.currentLevel) + 1;
+
+            // ✅ FIXED: If advanced level quiz is already passed → redirect to course details page
+            if (APP.currentLevel === 'advanced' || nextIdx >= APP.levels.length) {
+                // Show a success message briefly then redirect to course page
+                area.innerHTML = `
+                    <div class="completion-banner">
+                        <h2>🏆 Congratulations!</h2>
+                        <p>You have successfully completed all levels of this course!</p>
+                        <button class="go-back-btn" onclick="window.location.href='/courses/course/${APP.courseSlug}'">
+                            <i class="fas fa-trophy"></i> View Course Certificate
+                        </button>
+                    </div>`;
+                
+                // Optional: Auto redirect after 3 seconds
+                setTimeout(() => {
+                    window.location.href = `/courses/course/${APP.courseSlug}`;
+                }, 3000);
+            } else {
+                area.innerHTML = `
+                    <div class="item" style="text-align:center;padding:32px;">
+                        <div style="font-size:48px;">🎉</div>
+                        <h2>Level Complete!</h2>
+                        <p>Ready for <strong>${APP.levels[nextIdx]}</strong>?</p>
+                        <button class="view-details-btn" onclick="loadNextLevel('${APP.levels[nextIdx]}')">
+                            Go to ${APP.levels[nextIdx]} Level
+                        </button>
+                    </div>`;
+            }
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+/* ── SHOW QUIZ FORM ── */
+function showQuizForm(quiz) {
+    const area = document.getElementById('levelActionArea');
+    let questionsHtml = '';
+
+    quiz.questions.forEach((q, idx) => {
+        let inputsHtml = '';
+        if (q.questionType === 'written') {
+            inputsHtml = `<input type="text" name="answers[${idx}]" placeholder="Type your answer..."
+                style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;">`;
+        } else {
+            const opts       = q.options || ['True', 'False'];
+            const isMulti    = q.questionType === 'multi-select';
+            const inputType  = isMulti ? 'checkbox' : 'radio';
+            const nameAttr   = isMulti ? `name="answers[${idx}][]"` : `name="answers[${idx}]"`;
+            opts.forEach((opt, optIdx) => {
+                inputsHtml += `
+                    <label class="quiz-option">
+                        <input type="${inputType}" ${nameAttr} value="${optIdx}">
+                        <span>${String.fromCharCode(65+optIdx)}. ${escapeHtml(opt)}</span>
+                    </label>`;
+            });
+        }
+        questionsHtml += `
+            <div class="quiz-question">
+                <h4>Question ${idx+1}: ${escapeHtml(q.question)}</h4>
+                ${inputsHtml}
+            </div>`;
+    });
+
+    area.innerHTML = `
+        <div class="item quiz-section">
+            <h2><i class="fas fa-puzzle-piece"></i> ${escapeHtml(quiz.title)}</h2>
+            <p>Passing score: ${quiz.passingScore || 70}%</p>
+            <form id="quizForm" onsubmit="submitQuiz(event,'${quiz._id}')">
+                ${questionsHtml}
+                <button type="submit" class="view-details-btn" style="background:#10B981;margin-top:10px;">
+                    <i class="fas fa-paper-plane"></i> Submit Quiz
+                </button>
+            </form>
+            <div id="quizResult"></div>
+        </div>`;
+    area.scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ── SUBMIT LEVEL QUIZ ── */
+/* ── SUBMIT LEVEL QUIZ ── */
+async function submitQuiz(event, quizId) {
+    event.preventDefault();
+    const form       = document.getElementById('quizForm');
+    const submitBtn  = form.querySelector('button[type="submit"]');
+    const resultDiv  = document.getElementById('quizResult');
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    const formData = new FormData(form);
+    const answers  = {};
+    for (let [key, value] of formData.entries()) {
+        const match = key.match(/answers\[(\d+)\](\[\])?/);
+        if (match) {
+            const idx = match[1];
+            if (match[2]) {
+                if (!answers[idx]) answers[idx] = [];
+                answers[idx].push(value);
+            } else {
+                answers[idx] = value;
+            }
+        }
+    }
+
+    try {
+        const res    = await fetch('/quiz/submit', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                courseId: APP.courseId,
+                quizId,
+                level:    APP.currentLevel,
+                answers
+            })
+        });
+
+        const result = await res.json();
+        
+
+        if (result.passed) {
+            // ✅ FIXED: If advanced level, redirect to course page
+            if (APP.currentLevel === 'advanced') {
+                resultDiv.innerHTML = `
+                    <div class="result-banner success">
+                        <strong>🏆 Congratulations! You've completed the entire course!</strong><br>
+                        Redirecting to course page...
+                    </div>`;
+
+                setTimeout(() => {
+                    window.location.href = `/courses/course/${APP.courseSlug}`;
+                }, 2000);
+
+                return;
+            }
+
+            // For other levels, show level completion
+            resultDiv.innerHTML = `
+                <div class="result-banner success">
+                    <strong>✓ Passed!</strong> Score: ${result.percentage}%<br>${result.message}
+                </div>`;
+
+            setTimeout(() => {
+                document.getElementById('levelActionArea').innerHTML = `
+                    <div class="item" style="text-align:center;padding:32px;">
+                        <div style="font-size:48px;">🎉</div>
+                        <h2>Level Complete!</h2>
+                        <p>Ready for <strong>${result.nextLevel}</strong>?</p>
+                        <button class="view-details-btn" onclick="loadNextLevel('${result.nextLevel}')">
+                            Go to ${result.nextLevel} Level
+                        </button>
+                    </div>`;
+            }, 2000);
+
+        } else {
+            resultDiv.innerHTML = `
+                <div class="result-banner error">
+                    <strong>❌ Not yet!</strong> Score: ${result.percentage}%<br>${result.message}<br>
+                    <button class="view-details-btn" onclick="location.reload()">Try Again</button>
+                </div>`;
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+        }
+
+    } catch(err) {
+        resultDiv.innerHTML = `<div class="result-banner error">Error: ${err.message}</div>`;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+    }
+}
+
+/* ── LOAD NEXT LEVEL ── */
+async function loadNextLevel(nextLevel) {
+    try {
+        const res  = await fetch(`/courses/api/level-lessons?courseId=${APP.courseId}&level=${nextLevel}`);
+        const data = await res.json();
+
+        if (data.success) {
+            APP.currentLevel  = nextLevel;
+            APP.completedIds  = data.completedIds || [];
+            completedCount    = APP.completedIds.length;
+            APP.totalLessons  = data.lessons.length;
+            currentLessonsData = data.lessons;
+
+            document.getElementById('headerLevelLabel').innerText        = nextLevel;
+            document.getElementById('levelBadge').innerText              = nextLevel;
+            document.getElementById('sidebarLevelTitle').innerHTML       = nextLevel.toUpperCase() + ' Lessons';
+
+            renderLessons(data.lessons);
+            renderSidebar(data.lessons);
+            document.getElementById('levelActionArea').innerHTML = '';
+
+            if (completedCount >= APP.totalLessons && APP.totalLessons > 0) {
+                await checkAndShowQuiz();
+            }
+
+            document.querySelector('.main').scrollTop = 0;
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Error loading next level');
+    }
+}
+
+/* ── HELPERS ── */
+function scrollToLesson(lessonId) {
+    const el = document.getElementById(`lesson-${lessonId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+}
+
+function escapeAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/'/g, "\\'");
+}
+</script>
+</body>
+</html>

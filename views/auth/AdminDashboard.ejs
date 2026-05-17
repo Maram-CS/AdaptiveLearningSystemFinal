@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Eduphin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/Style/adminDashboard.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Eduphin Admin</span>
+    </div>
+    <div class="menu">
+        <ul>
+            <li class="active" data-page="dashboard">
+                <a href="#"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+            </li>
+            <li data-page="users">
+                <a href="#"><i class="fas fa-users"></i> <span>Manage Users</span></a>
+            </li>
+        </ul>
+    </div>
+    <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+</div>
+
+<div class="main">
+    <div class="main-header">
+        <h1>Admin <span>Dashboard</span></h1>
+        <div class="admin-info"><div class="avatar">A</div><span>Admin</span></div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-info"><h3>Total Users</h3><div class="number" id="totalUsers">0</div></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+            <div class="stat-card"><div class="stat-info"><h3>Students</h3><div class="number" id="totalStudents">0</div></div><div class="stat-icon"><i class="fas fa-user-graduate"></i></div></div>
+            <div class="stat-card"><div class="stat-info"><h3>Teachers</h3><div class="number" id="totalTeachers">0</div></div><div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div></div>
+            <div class="stat-card"><div class="stat-info"><h3>Total Courses</h3><div class="number" id="totalCourses">0</div></div><div class="stat-icon"><i class="fas fa-book"></i></div></div>
+        </div>
+
+        <div class="analytics-card">
+            <div class="analytics-header"><h3><i class="fas fa-chart-line"></i> System Analytics</h3></div>
+            <div class="analytics-grid" id="analyticsGrid">
+                <div class="chart-placeholder"><i class="fas fa-chart-bar"></i><p>User Growth</p><small id="userGrowth">Loading...</small></div>
+                <div class="chart-placeholder"><i class="fas fa-chart-pie"></i><p>Completion Rate</p><small id="completionRate">Loading...</small></div>
+                <div class="chart-placeholder"><i class="fas fa-chart-line"></i><p>Active Users</p><small id="activeUsers">Loading...</small></div>
+                <div class="chart-placeholder"><i class="fas fa-trophy"></i><p>Top Courses</p><small id="topCourses">Loading...</small></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Page -->
+    <div id="usersPage" style="display: none;">
+        <div class="users-card">
+            <div class="users-header"><h3><i class="fas fa-users"></i> Manage Users</h3><button id="addUserBtn" class="add-user-btn"><i class="fas fa-plus"></i> Add User</button></div>
+            <div class="table-container">
+                <table class="user-table"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody id="usersTableBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+            </div>
+        </div>
+    </div>
+    <div class="footer">© 2026 Eduphin. All rights reserved.</div>
+</div>
+
+<!-- Add User Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <h3>Add New User</h3>
+        <input type="text" id="userName" placeholder="Username">
+        <input type="email" id="userEmail" placeholder="Email">
+        <input type="password" id="userPassword" placeholder="Password">
+        <select id="userRole"><option value="student">Student</option><option value="teacher">Teacher</option></select>
+        <button class="btn-save" id="saveUserBtn">Save</button>
+        <button class="btn-cancel" id="cancelModalBtn">Cancel</button>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = '';
+
+    // Navigation
+    const pages = {
+        dashboard: document.getElementById('dashboardPage'),
+        users: document.getElementById('usersPage'),
+    };
+
+    document.querySelectorAll('.menu ul li').forEach(item => {
+        item.addEventListener('click', () => {
+            const page = item.getAttribute('data-page');
+
+            document.querySelectorAll('.menu ul li').forEach(li => li.classList.remove('active'));
+            item.classList.add('active');
+
+            Object.keys(pages).forEach(key => {
+                pages[key].style.display = 'none';
+            });
+
+            if (pages[page]) {
+                pages[page].style.display = 'block';
+            }
+
+            if (page === 'users') {
+                loadUsers();
+            }
+
+            if (page === 'dashboard') {
+                loadStats();
+                loadAnalytics();
+            }
+        });
+    });
+
+    // Load Dashboard Stats
+    async function loadStats() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/stats`);
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('totalUsers').innerText = data.stats.totalUsers;
+                document.getElementById('totalStudents').innerText = data.stats.totalStudents;
+                document.getElementById('totalTeachers').innerText = data.stats.totalTeachers;
+                document.getElementById('totalCourses').innerText = data.stats.totalCourses;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Load Analytics
+    async function loadAnalytics() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/analytics`);
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('userGrowth').innerText = `${data.analytics.totalUsers} total users`;
+                document.getElementById('completionRate').innerText = `${data.analytics.completionRate}%`;
+                document.getElementById('activeUsers').innerText = `${data.analytics.activeUsers} active`;
+                document.getElementById('topCourses').innerHTML = data.analytics.topCourses
+                    .map(c => `${c.name} (${c.enrollment})`)
+                    .join('<br>');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Load Users Table
+    async function loadUsers() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users`);
+            const data = await res.json();
+
+            if (data.success && data.users.length) {
+                document.getElementById('usersTableBody').innerHTML = data.users.map(user => `
+                    <tr>
+                        <td>${user._id.slice(-5)}</td>
+                        <td>${user.userName}</td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="role-badge ${user.role === 'student' ? 'role-student' : 'role-teacher'}">
+                                ${user.role}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteUser('${user._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5">No users found</td></tr>';
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Add User
+    document.getElementById('addUserBtn')?.addEventListener('click', () => {
+        document.getElementById('userModal').style.display = 'flex';
+    });
+
+    document.getElementById('saveUserBtn')?.addEventListener('click', async () => {
+        const userName = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const password = document.getElementById('userPassword').value;
+        const role = document.getElementById('userRole').value;
+
+        if (!userName || !email) {
+            alert('Please fill required fields');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userName, email, password, role }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('User added successfully');
+                document.getElementById('userModal').style.display = 'none';
+                loadUsers();
+                loadStats();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    // Delete User
+    window.deleteUser = async (id) => {
+        if (!confirm('Are you sure?')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+
+            if (data.success) {
+                loadUsers();
+                loadStats();
+                alert('User deleted');
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    document.getElementById('cancelModalBtn')?.addEventListener('click', () => {
+        document.getElementById('userModal').style.display = 'none';
+    });
+
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        window.location.href = '/login';
+    });
+
+    window.onclick = (event) => {
+        if (event.target === document.getElementById('userModal')) {
+            document.getElementById('userModal').style.display = 'none';
+        }
+    };
+
+    // Initial load
+    loadStats();
+    loadAnalytics();
+</script>
+</body>
+</html>

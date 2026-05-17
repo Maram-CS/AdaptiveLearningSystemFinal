@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eduphin | Edit Course</title>
+<link rel="stylesheet" href="/Style/createCourse.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img">
+            <span>Eduphin</span>
+        </div>
+
+        <div class="menu">
+            <ul>
+                <li class="active">Edit Course</li>
+                <li><a href="/teacherDashboard/get">Home</a></li>
+                <li><a href="/profile/Profile-view">My Profile</a></li>
+                <li><a href="/App/studentAnalytics">Student Analytics</a></li>
+            </ul>
+        </div>
+
+        <br><br><br><br><br>
+
+        <a href="/home">
+           <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+        </a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <div class="main-header">
+            <h2>Edit <span>Course</span></h2>
+        </div>
+
+        <br>
+
+        <div style="padding: 0 2rem;">
+            <h3><span class="orange">Edit</span> <span class="blue">Course</span></h3>
+            <p class="breadcrumb">
+                <a href="/teacherDashboard/get">Home</a> &rsaquo; Edit Course
+            </p>
+        </div>
+
+        <!-- Toast notification -->
+        <div id="toast" style="
+            display: none;
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            padding: 14px 20px; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        "></div>
+
+        <div style="padding: 0 2rem 2rem;">
+
+            <!-- FORM -->
+            <form id="edit-course-form" action="/courses/edit/<%= course.slug %>" method="POST" enctype="multipart/form-data">
+
+                <!-- BASIC INFO -->
+                <div class="form-section">
+                    <div class="form-section-title">Basic info</div>
+
+                    <div class="field">
+                        <label>Course Title *</label>
+                        <input type="text" id="editTitle" name="Title" value="<%= course.Title %>" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Description *</label>
+                        <textarea id="editDescription" name="Description" required><%= course.Description %></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>Category *</label>
+                        <select id="editCategory" name="category" required>
+                            <option value="frontend" <%= course.category === "frontend" ? "selected" : "" %>>Frontend</option>
+                            <option value="backend" <%= course.category === "backend" ? "selected" : "" %>>Backend</option>
+                            <option value="database" <%= course.category === "database" ? "selected" : "" %>>Database</option>
+                            <option value="tools" <%= course.category === "tools" ? "selected" : "" %>>Tools</option>
+                            <option value="design" <%= course.category === "design" ? "selected" : "" %>>Design</option>
+                            <option value="deployment" <%= course.category === "deployment" ? "selected" : "" %>>Deployment</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- DETAILS -->
+                <div class="form-section">
+                    <div class="form-section-title">Course details</div>
+
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Level</label>
+                            <select id="editLevel" name="level">
+                                <option value="beginner" <%= course.level === "beginner" ? "selected" : "" %>>Beginner</option>
+                                <option value="intermediate" <%= course.level === "intermediate" ? "selected" : "" %>>Intermediate</option>
+                                <option value="advanced" <%= course.level === "advanced" ? "selected" : "" %>>Advanced</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label>Total Duration</label>
+                            <input type="text" id="editTotalDuration" name="totalDuration" value="<%= course.totalDuration %>">
+                        </div>
+
+                        <div class="field">
+                            <label>Price (USD)</label>
+                            <input type="number" id="editPrice" name="price" value="<%= course.price %>" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Slug</label>
+                        <input type="text" id="editSlug" name="slug" value="<%= course.slug %>">
+                    </div>
+                </div>
+
+                <!-- MEDIA -->
+                <div class="form-section">
+                    <div class="form-section-title">Media</div>
+
+                    <div class="field">
+                        <label>Course Thumbnail</label>
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label for="editImage" style="
+                                display:inline-flex; align-items:center; gap:8px;
+                                padding:8px 16px; background:transparent;
+                                border:1px solid #ccc; border-radius:6px;
+                                cursor:pointer; font-size:14px;">
+                                📁 Choose New Image
+                                <input type="file" id="editImage" name="image" accept="image/jpeg,image/png,image/jpg" style="display:none;" onchange="previewImg(this)">
+                            </label>
+                            <span id="editFileName" style="font-size:13px; color:#888;">No new file chosen</span>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="editImgPreview" style="
+                            margin-top:12px; width:180px; height:110px;
+                            border:1px dashed #ccc; border-radius:8px;
+                            display:flex; flex-direction:column;
+                            align-items:center; justify-content:center;
+                            color:#aaa; font-size:13px; gap:6px; overflow:hidden;">
+                            <% if(course.image){ %>
+                                <img src="<%= course.image %>" style="width:100%; height:100%; object-fit:cover;">
+                            <% } else { %>
+                                🖼️ No image
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LESSONS SECTION -->
+                <div class="form-section">
+                    <div class="form-section-title">Lessons</div>
+                    <div id="edit-lessons-container">
+                        <% if (course.lessons && course.lessons.length) { %>
+                            <% course.lessons.forEach(function(lesson, idx) { %>
+                                <div class="form-section" style="margin-top:15px;" data-lesson-index="<%= idx %>">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <strong>Lesson <%= idx + 1 %></strong>
+                                        <button type="button" onclick="removeLesson(this)" class="btn-reset" style="padding:4px 10px;">✕ Remove</button>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Lesson Name *</label>
+                                        <input type="text" name="lessons[<%= idx %>][name]" value="<%= lesson.name %>" required>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Lesson Type</label>
+                                        <select name="lessons[<%= idx %>][type]" onchange="changeFileAcceptEdit(this, <%= idx %>)">
+                                            <option value="video" <%= lesson.type === "video" ? "selected" : "" %>>Video</option>
+                                            <option value="PDF" <%= lesson.type === "PDF" ? "selected" : "" %>>PDF</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Lesson Level</label>
+                                        <select name="lessons[<%= idx %>][level]">
+                                            <option value="beginner" <%= lesson.level === "beginner" ? "selected" : "" %>>Beginner</option>
+                                            <option value="intermediate" <%= lesson.level === "intermediate" ? "selected" : "" %>>Intermediate</option>
+                                            <option value="advanced" <%= lesson.level === "advanced" ? "selected" : "" %>>Advanced</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Duration *</label>
+                                        <input type="text" name="lessons[<%= idx %>][duration]" value="<%= lesson.duration %>" required>
+                                    </div>
+                                    
+                                    <input type="hidden" name="lessons[<%= idx %>][existingFile]" value="<%= lesson.file %>">
+                                    
+                                    <div class="field">
+                                        <label>Current File</label>
+                                        <% if(lesson.file && lesson.file !== "") { %>
+                                            <div style="padding:8px; background:#f0fdf4; border-radius:6px; margin-bottom:10px;">
+                                                📄 Current: <a href="<%= lesson.file %>" target="_blank" style="color:#4F46E5;"><%= lesson.file.split('/').pop() %></a>
+                                            </div>
+                                        <% } else { %>
+                                            <div style="padding:8px; background:#fef3c7; border-radius:6px; margin-bottom:10px; color:#92400e;">
+                                                ⚠️ No file uploaded
+                                            </div>
+                                        <% } %>
+                                        
+                                        <label>Upload New File (optional)</label>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <label for="editLessonFile-<%= idx %>" style="
+                                                background: #4F46E5;
+                                                color: white;
+                                                padding: 8px 16px;
+                                                border-radius: 6px;
+                                                cursor: pointer;
+                                                display: inline-block;
+                                            ">
+                                                📁 Choose File
+                                            </label>
+                                            <input type="file" 
+                                                   id="editLessonFile-<%= idx %>"
+                                                   name="lessonFiles" 
+                                                   accept="video/mp4,video/webm,application/pdf"
+                                                   style="display: none;">
+                                            <span id="editLessonFileName-<%= idx %>" style="color: #666;">
+                                                No new file chosen
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                    <button type="button" class="btn-create" onclick="addLessonEdit()" style="margin-top:10px;">+ Add Lesson</button>
+                </div>
+
+                <!-- VISIBILITY -->
+                <div class="form-section">
+                    <label style="display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" name="isPublished" <%= course.isPublished ? "checked" : "" %>>
+                        Publish immediately
+                    </label>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="form-actions">
+                    <button type="button" class="btn-reset" onclick="resetFormEdit()">Reset</button>
+                    <button type="submit" class="btn-create" id="editSubmitBtn">Update Course</button>
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+    </div>
+</div>
+
+<script>
+let editLessonIndex = <%= course.lessons ? course.lessons.length : 0 %>;
+
+// Image preview for edit page
+function previewImg(input) {
+    const preview = document.getElementById('editImgPreview');
+    const fileNameSpan = document.getElementById('editFileName');
+    
+    if (input.files && input.files[0]) {
+        fileNameSpan.textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        fileNameSpan.textContent = 'No new file chosen';
+        preview.innerHTML = '🖼️ No image';
+    }
+}
+
+// Add lesson function for edit page
+function addLessonEdit() {
+    const container = document.getElementById('edit-lessons-container');
+    const idx = editLessonIndex;
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('form-section');
+    wrapper.style.marginTop = '15px';
+    wrapper.setAttribute('data-lesson-index', idx);
+
+    wrapper.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>Lesson ${idx + 1}</strong>
+            <button type="button" onclick="removeLesson(this)" class="btn-reset" style="padding:4px 10px;">✕ Remove</button>
+        </div>
+
+        <div class="field">
+            <label>Lesson Name *</label>
+            <input type="text" name="lessons[${idx}][name]" placeholder="Introduction to Node.js" required>
+        </div>
+
+        <div class="field">
+            <label>Lesson Type</label>
+            <select name="lessons[${idx}][type]" onchange="changeFileAcceptEdit(this, ${idx})">
+                <option value="video">Video</option>
+                <option value="PDF">PDF</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Lesson Level</label>
+            <select name="lessons[${idx}][level]">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Duration *</label>
+            <input type="text" name="lessons[${idx}][duration]" placeholder="10 min" required>
+        </div>
+
+        <input type="hidden" name="lessons[${idx}][existingFile]" value="">
+        
+        <div class="field">
+            <label>Upload File (PDF or Video) *</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="editLessonFile-${idx}" style="
+                    background: #4F46E5;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    display: inline-block;
+                ">
+                    📁 Choose File
+                </label>
+                <input type="file" 
+                       id="editLessonFile-${idx}"
+                       name="lessonFiles" 
+                       accept="video/mp4,video/webm,application/pdf"
+                       style="display: none;"
+                       required>
+                <span id="editLessonFileName-${idx}" style="color: #666;">
+                    No file chosen
+                </span>
+            </div>
+        </div>
+    `;
+
+    const fileInput = wrapper.querySelector(`#editLessonFile-${idx}`);
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const fileNameSpan = document.getElementById(`editLessonFileName-${idx}`);
+            if (fileNameSpan) {
+                fileNameSpan.textContent = this.files[0] ? this.files[0].name : 'No file chosen';
+            }
+        });
+    }
+
+    container.appendChild(wrapper);
+    editLessonIndex++;
+}
+
+// Remove lesson
+function removeLesson(btn) {
+    const lessonDiv = btn.closest('[data-lesson-index]');
+    if (lessonDiv) {
+        lessonDiv.remove();
+        reindexLessons();
+    }
+}
+
+// Re-index lessons after removal
+function reindexLessons() {
+    const lessons = document.querySelectorAll('#edit-lessons-container > [data-lesson-index]');
+    lessons.forEach((lesson, newIdx) => {
+        lesson.setAttribute('data-lesson-index', newIdx);
+        
+        const strongEl = lesson.querySelector('strong');
+        if (strongEl) {
+            strongEl.textContent = `Lesson ${newIdx + 1}`;
+        }
+        
+        const inputs = lesson.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) {
+                const newName = name.replace(/lessons\[\d+\]/, `lessons[${newIdx}]`);
+                input.setAttribute('name', newName);
+            }
+        });
+        
+        const fileInput = lesson.querySelector('input[type="file"]');
+        if (fileInput) {
+            const oldId = fileInput.id;
+            const newId = `editLessonFile-${newIdx}`;
+            fileInput.id = newId;
+            
+            const label = lesson.querySelector(`label[for="${oldId}"]`);
+            if (label) {
+                label.setAttribute('for', newId);
+            }
+            
+            const span = lesson.querySelector(`#editLessonFileName-${oldId.split('-').pop()}`);
+            if (span) {
+                span.id = `editLessonFileName-${newIdx}`;
+            }
+        }
+    });
+    editLessonIndex = lessons.length;
+}
+
+// Change accepted file types
+function changeFileAcceptEdit(select, idx) {
+    const input = document.getElementById(`editLessonFile-${idx}`);
+    if (!input) return;
+    
+    if (select.value === 'PDF') {
+        input.accept = 'application/pdf';
+    } else {
+        input.accept = 'video/mp4,video/webm';
+    }
+}
+
+// Toast helper
+function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.background = isError ? '#fee2e2' : '#dcfce7';
+    toast.style.color = isError ? '#b91c1c' : '#166534';
+    toast.style.border = isError ? '1px solid #f87171' : '1px solid #86efac';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+}
+
+// Reset form
+function resetFormEdit() {
+    if (confirm('Are you sure you want to reset all changes?')) {
+        location.reload();
+    }
+}
+
+// Auto slug from title
+const titleInput = document.getElementById('editTitle');
+if (titleInput) {
+    titleInput.addEventListener('input', function() {
+        const slugInput = document.getElementById('editSlug');
+        if (slugInput) {
+            slugInput.value = this.value
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+    });
+}
+
+// Form submit via fetch
+const editForm = document.getElementById('edit-course-form');
+if (editForm) {
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('editSubmitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating...';
+        
+        try {
+            const formData = new FormData(this);
+            const actionUrl = this.action;
+            
+            const response = await fetch(actionUrl, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.redirected) {
+                showToast('✅ Course updated successfully!');
+                setTimeout(() => {
+                    window.location.href = response.url;
+                }, 1500);
+            } else if (response.ok) {
+                const data = await response.json();
+                showToast('✅ Course updated successfully!');
+                setTimeout(() => {
+                    window.location.href = '/teacherDashboard/get';
+                }, 1500);
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to update course');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('❌ ' + err.message, true);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Update Course';
+        }
+    });
+}
+</script>
+
+<% if (typeof message !== "undefined") { %>
+<script>
+    showToast("<%= message %>");
+</script>
+<% } %>
+
+</body>
+</html>

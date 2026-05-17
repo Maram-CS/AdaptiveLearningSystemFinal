@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= course.Title %> - Lessons</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/Style/dashboard.css">
+    <link rel="stylesheet" href="/Style/courseLesson.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .course-page-container {
+            width: 100%;
+            padding: 24px 32px;
+        }
+
+        .course-header-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 28px 30px;
+            margin-bottom: 24px;
+        }
+
+        .course-header-card h2 {
+            margin: 0 0 8px;
+            font-size: 26px;
+            color: #1f2d3d;
+        }
+
+        .course-header-card .subtext {
+            color: #667085;
+            font-size: 15px;
+        }
+
+        .course-content {
+            display: grid;
+            gap: 20px;
+        }
+
+        .lesson-card {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(38, 78, 121, 0.06);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(38, 78, 121, 0.08);
+        }
+
+        .lesson-card h3 {
+            margin: 0 0 10px;
+            color: #1f2d3d;
+        }
+
+        .lesson-card p {
+            margin: 7px 0;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .lesson-card a {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: #2b7de9;
+            color: white;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .lesson-card a:hover {
+            background: #1e5fb8;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: #2b7de9;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: #1e5fb8;
+        }
+
+        .footer {
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img" alt="logo">
+            <span>Eduphin</span>
+        </div>
+        <div class="menu">
+            <ul>
+                <li><a href="/studentDashboard/">Dashboard</a></li>
+                <li><a href="/courses/All">All Courses</a></li>
+                <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+                <li><a href="/profile/Profile-view">My Profile</a></li>
+            </ul>
+        </div>
+        <br><br><br><br><br><br><br><br>
+        <a href="/home"><button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="main-header">
+            <h2><span>Course Lessons</span></h2>
+            <div class="header-actions">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Search lessons...">
+                <div class="buttons">
+                    <a href="/App/notifications" class="notif-btn">
+                        <button class="icon-btn">🔔<span class="notif-badge">0</span></button>
+                    </a>
+                    <button class="icon-btn" id="chatBtn">💬</button>
+                    <a href="/profile/Profile-view"><button class="icon-btn">👤</button></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="course-page-container">
+            <div class="course-header-card">
+                <h2><%= course.Title %></h2>
+                <p class="subtext">Lessons for level: <strong><%= userLevel %></strong></p>
+                <a class="back-link" href="/studentDashboard/">⬅ Back to Dashboard</a>
+            </div>
+
+            <div class="course-content">
+                <% if (lessons.length > 0) { %>
+                    <% lessons.forEach((lesson, index) => { %>
+                        <div class="lesson-card">
+                            <h3>Lesson <%= index + 1 %>: <%= lesson.name %></h3>
+                            <p>Level: <%= lesson.level %></p>
+                            <p>Duration: <%= lesson.duration %></p>
+                            <% if (lesson.type === "video") { %>
+                                <a href="<%= lesson.file %>" target="_blank" onclick="trackLessonOpen('<%= lesson._id %>')">▶ Watch Video</a>
+                            <% } else { %>
+                                <a href="<%= lesson.file %>" target="_blank" onclick="trackLessonOpen('<%= lesson._id %>')">📄 Open PDF</a>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="lesson-card">
+                        <p>No lessons available for your level.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="footer">© 2026 Eduphin. All rights reserved.</div>
+    </div>
+</div>
+
+<script>
+function trackLessonOpen(lessonId) {
+    fetch('/courses/api/open-lesson', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: '<%= course._id %>', lessonId }),
+        keepalive: true
+    }).catch(() => {});
+    return true;
+}
+
+const lessonSearchInput = document.getElementById('searchInput');
+if (lessonSearchInput) {
+    lessonSearchInput.addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('.lesson-card').forEach(card => {
+            card.style.display = card.textContent.toLowerCase().includes(filter) ? 'block' : 'none';
+        });
+    });
+}
+</script>
+<script src="//code.tidio.co/ihlzjyy4poj2j2yjxbswichcqxzfdlfk.js" async></script>
+<script>
+document.addEventListener('tidioChat-ready', function () {
+    const chatBtn = document.getElementById('chatBtn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', function () {
+            window.tidioChatApi.open();
+        });
+    }
+});
+</script>
+</body>
+</html>

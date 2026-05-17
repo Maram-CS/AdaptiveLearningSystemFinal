@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Adaptive Learning Platform</title>
+    <link rel="stylesheet" href="../Style/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+<style>
+    /* ========== CODE PLAYGROUND STYLES ========== */
+.code-playground {
+    background: #1e1e2f;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 10px;
+}
+.code-playground textarea {
+    width: 100%;
+    background: #2d2d3a;
+    color: #e0e0e0;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+.code-playground textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #2b7de9;
+}
+.code-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+#runCodeBtn {
+    background: #2b7de9;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 30px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+#runCodeBtn:hover {
+    background: #1a5bbf;
+}
+#resetCodeBtn {
+    background: #ecf0f1;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 30px;
+    color: #2c3e50;
+    font-weight: 600;
+    cursor: pointer;
+}
+.live-result {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px;
+}
+.result-frame {
+    width: 100%;
+    height: 300px;
+    border: none;
+    border-radius: 12px;
+    background: white;
+    margin-top: 10px;
+}
+</style>
+<div class="page-container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img" alt="logo">
+            <span>Eduphin</span>
+        </div>
+         <div class="menu">
+      <ul>
+        <li class="active"><a href="/courses/All">All Courses</a></li>
+        <li><a href="/App/studentDashboard">Dashboard</a></li>
+        <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+        <li><a href="/profile/Profile-view">My Profile</a></li>
+      </ul>
+    </div>
+    <a href="/home"><button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="main-header">
+            <h2>Student <span>Dashboard</span></h2>
+            <div class="header-actions">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Search courses...">
+                <div class="buttons">
+                    <a href="/App/notifications" class="notif-btn">
+                        <button class="icon-btn">🔔<span class="notif-badge">0</span></button>
+                    </a>
+                    <button class="icon-btn" id="chatBtn">💬</button>
+                    <a href="/profile/Profile-view"><button class="icon-btn">👤</button></a>
+                </div>
+            </div>
+        </div>
+<!-- ========== CODE PLAYGROUND SECTION ========== -->
+<div class="dashboard-card">
+  <div class="card-header">
+    <i class="fas fa-laptop-code"></i>
+    <h3>Live Code Editor</h3>
+  </div>
+  <p style="color: #555; margin-bottom: 15px;">
+    Write, run, and experiment with HTML, CSS, and JavaScript directly in your browser.
+  </p>
+
+  <div class="code-playground">
+    <textarea id="htmlCode" rows="8" placeholder='Write your HTML/CSS/JS code here...'>
+<h2 style="color: #2b7de9;">Hello, Eduphin! 🚀</h2>
+<p>This is my first live code.</p>
+<button onclick="alert('🎉 You clicked!')">Click me</button>
+    </textarea>
+    <div class="code-actions">
+      <button id="runCodeBtn" onclick="runLiveCode()">▶️ Run Code</button>
+      <button id="resetCodeBtn" onclick="resetCode()">⟳ Reset</button>
+    </div>
+    <div class="live-result">
+      <strong>📱 Result:</strong>
+      <iframe id="liveResult" class="result-frame" title="Live Code Preview" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+    </div>
+  </div>
+</div>
+        <!-- DASHBOARD CONTENT (Dynamic) -->
+        <div id="dashboard-container"></div>
+
+         <!-- FOOTER -->
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // STUDENT DASHBOARD DATA
+    // ============================================
+    let userData = {};
+
+    let courses = [];
+
+    const recommendations = [
+        { icon: "fas fa-code", title: "JavaScript Arrays", reason: "Based on your last quiz performance" },
+        { icon: "fab fa-react", title: "React Components", reason: "Next in your Full-Stack path" },
+        { icon: "fab fa-python", title: "Pandas Tutorial", reason: "Popular among learners this week" }
+    ];
+
+    let leaderboard = [];
+
+    // ============================================
+    // FUNCTIONS
+    // ============================================
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
+
+    function toggleLessons(courseId) {
+        const lessonsDiv = document.getElementById(`lessons-${courseId}`);
+        const icon = document.getElementById(`expand-icon-${courseId}`);
+        if (lessonsDiv) {
+            lessonsDiv.classList.toggle('show');
+            if (icon) {
+                icon.classList.toggle('rotated');
+            }
+        }
+    }
+
+    function continueLesson(lessonTitle, courseTitle) {
+        showToast(`📚 Continuing: ${lessonTitle} from ${courseTitle}`);
+    }
+
+    function animateNumbers() {
+        const numbers = document.querySelectorAll('.stat-number');
+        numbers.forEach(el => {
+            const target = parseInt(el.getAttribute('data-target'));
+            let current = 0;
+            const increment = target / 50;
+            const updateNumber = () => {
+                current += increment;
+                if (current < target) {
+                    el.textContent = Math.floor(current);
+                    requestAnimationFrame(updateNumber);
+                } else {
+                    el.textContent = target;
+                }
+            };
+            updateNumber();
+        });
+    }
+
+    async function loadDashboardData() {
+    try {
+
+        const res = await fetch("/studentDashboard/get");
+        const data = await res.json();
+
+        if(data.success){
+            userData = data.userData;
+            courses = data.courses;
+        }
+
+        const leaderboardRes = await fetch("/studentDashboard/leaderboard");
+        const leaderboardData = await leaderboardRes.json();
+
+        if(leaderboardData.success){
+            leaderboard = leaderboardData.leaderboard;
+        }
+
+        renderDashboard();
+
+    } catch(error){
+        console.error("Dashboard Error:", error);
+    }
+}
+
+    function renderDashboard() {
+        const container = document.getElementById('dashboard-container');
+        
+        const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
+        const completedLessons = courses.reduce((sum, c) => sum + c.lessons.filter(l => l.completed).length, 0);
+        const avgProgress = Math.round(courses.reduce((sum, c) => sum + c.overallProgress, 0) / courses.length);
+        
+        container.innerHTML = `
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <div class="welcome-text">
+                    <h1><i class="fas fa-smile-wink"></i> Hello, ${userData.firstName}!</h1>
+                    <p>You are enrolled in <strong>${courses.length} courses</strong><br>Click on any course to see its lessons.</p>
+                </div>
+                <div class="streak-badge" onclick="showToast('🔥 You're on a ${userData.streakDays}-day streak!')">
+                    <i class="fas fa-fire"></i> Day ${userData.streakDays} 🔥
+                </div>
+            </div>
+
+            <!-- Progress + Recommendations Row -->
+            <div class="dashboard-grid-2">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Overall Progress</h3>
+                    </div>
+                    <div class="progress-label">
+                        <span>All Courses</span>
+                        <span><strong>${avgProgress}%</strong></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${avgProgress}%"></div>
+                    </div>
+                    <p><i class="fas fa-check-circle"></i> ${completedLessons}/${totalLessons} lessons completed</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <h3>Smart Recommendations</h3>
+                    </div>
+                    <ul class="recommendations-list">
+                        ${recommendations.map(rec => `
+                            <li onclick="showToast('📚 Recommended: ${rec.title}')">
+                                <i class="${rec.icon}"></i> 
+                                <strong>${rec.title}</strong> – ${rec.reason}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="showToast('📖 ${completedLessons} lessons completed')">
+                    <i class="fas fa-book-open"></i>
+                    <div class="stat-number" data-target="${completedLessons}">0</div>
+                    <div class="stat-label">Lessons Done</div>
+                </div>
+                <div class="stat-card" onclick="showToast('🔥 ${userData.streakDays}-day streak!')">
+                    <i class="fas fa-fire"></i>
+                    <div class="stat-number" data-target="${userData.streakDays}">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat-card" onclick="showToast('⏱️ ${userData.totalLearningHours}h ${userData.totalLearningMinutes}m')">
+                    <i class="fas fa-hourglass-half"></i>
+                    <div class="stat-number" data-target="${userData.totalLearningHours}">0</div>
+                    <div class="stat-label">Learning Hours</div>
+                </div>
+                <div class="stat-card" onclick="showToast('📊 ${userData.quizAverage}% average')">
+                    <i class="fas fa-chart-simple"></i>
+                    <div class="stat-number" data-target="${userData.quizAverage}">0</div>
+                    <div class="stat-label">Quiz Average</div>
+                </div>
+            </div>
+
+            <!-- Courses Section -->
+            <div class="dashboard-card courses-section">
+                <div class="card-header">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>My Courses (${courses.length})</h3>
+                </div>
+                ${courses.map(course => `
+                    <div class="course-card" onclick="toggleLessons(${course.id})">
+                        <div class="course-header">
+                            <div class="course-title">
+                                <i class="${course.icon}"></i> 
+                                <strong>${course.title}</strong>
+                            </div>
+                            <div class="course-progress-badge">${course.overallProgress}%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${course.overallProgress}%"></div>
+                        </div>
+                        <div class="last-lesson">
+                            <i class="fas fa-clock"></i> Last: ${course.lastLesson} — ${course.lastLessonTime} min left
+                        </div>
+                        <div class="course-actions">
+                            <button class="continue-btn" onclick="event.stopPropagation(); showToast('📚 Continue ${course.title}')">
+                                <i class="fas fa-play"></i> Continue Course
+                            </button>
+                            <i id="expand-icon-${course.id}" class="fas fa-chevron-right expand-icon"></i>
+                        </div>
+                        
+                        <div id="lessons-${course.id}" class="lessons-container">
+                            <div class="lessons-header"><i class="fas fa-list"></i> Lessons in this course</div>
+                            ${course.lessons.map(lesson => `
+                                <div class="lesson-item" onclick="event.stopPropagation(); continueLesson('${lesson.title}', '${course.title}')">
+                                    <div class="lesson-title">
+                                        <span><i class="${lesson.icon}"></i> <strong>${lesson.title}</strong></span>
+                                        ${lesson.completed ? '<span class="completed-badge"><i class="fas fa-check"></i> Done</span>' : `<span>${lesson.progress}%</span>`}
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${lesson.progress}%"></div>
+                                    </div>
+                                    ${!lesson.completed ? `
+                                        <button class="small-continue-btn" onclick="event.stopPropagation(); continueLesson('${lesson.title}', '${course.title}')">
+                                            <i class="fas fa-play"></i> ${lesson.progress > 0 ? 'Continue' : 'Start'} Lesson
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Leaderboard + Today's Path -->
+            <div class="dashboard-grid-2">
+                <div class="dashboard-card">
+                    <div class="card-header"><i class="fas fa-trophy"></i><h3>Weekly Leaderboard</h3></div>
+                    <table class="leaderboard-table">
+                        <thead><tr><th>Rank</th><th>Student</th><th>Points</th></tr></thead>
+                        <tbody>
+                            ${leaderboard.map((item, idx) => `
+                                <tr class="${item.isCurrentUser ? 'current-user' : ''}" onclick="showToast('${item.name}: ${item.points} pts')">
+                                    <td>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx+1}</td>
+                                    <td><strong>${item.name}${item.isCurrentUser ? ' (You)' : ''}</strong></td>
+                                    <td>${item.points}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-header"><i class="fas fa-calendar-day"></i><h3>Today's Learning Path</h3></div>
+                    <ul class="today-path-list">
+                        <li><i class="fas fa-code"></i> <strong>Full-Stack:</strong> React Hooks (15 min)</li>
+                        <li><i class="fas fa-chart-line"></i> <strong>Data Science:</strong> Pandas Tutorial</li>
+                        <li><i class="fas fa-mobile-alt"></i> <strong>Flutter:</strong> Widgets Basics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Upcoming Assessments -->
+            <div class="dashboard-card">
+                <div class="card-header"><i class="fas fa-calendar-alt"></i><h3>Upcoming Assessments</h3></div>
+                <ul class="assessments-list">
+                    <li><i class="fas fa-clock"></i> <strong>Tomorrow:</strong> JavaScript Functions Quiz (Full-Stack)</li>
+                    <li><i class="fas fa-clock"></i> <strong>In 3 days:</strong> Final Project – Calculator App (Full-Stack)</li>
+                    <li><i class="fas fa-clock"></i> <strong>Next week:</strong> Pandas Quiz (Python for Data Science)</li>
+                </ul>
+            </div>
+        `;
+        
+        setTimeout(animateNumbers, 500);
+    }
+
+    loadDashboardData();
+
+    const dashboardSearchInput = document.getElementById('searchInput');
+    if (dashboardSearchInput) {
+        dashboardSearchInput.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            document.querySelectorAll('.course-card').forEach(card => {
+                card.style.display = card.textContent.toLowerCase().includes(filter) ? 'block' : 'none';
+            });
+        });
+    }
+   // ========== CODE PLAYGROUND FUNCTIONS ==========
+function runLiveCode() {
+    const code = document.getElementById('htmlCode').value;
+    const iframe = document.getElementById('liveResult');
+    
+    const doc = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    padding: 20px;
+                    margin: 0;
+                }
+            </style>
+        </head>
+        <body>
+            ${code}
+        </body>
+        </html>
+    `;
+    
+    iframe.srcdoc = doc;
+}
+
+function resetCode() {
+    const defaultCode = `<h2 style="color: #2b7de9;">Hello, Eduphin! 🚀</h2>
+<p>This is my first live code.</p>
+<button onclick="alert('🎉 You clicked!')">Click me</button>`;
+    document.getElementById('htmlCode').value = defaultCode;
+    runLiveCode();
+}
+
+</script>
+<script src="//code.tidio.co/ihlzjyy4poj2j2yjxbswichcqxzfdlfk.js" async></script>
+<script>
+document.addEventListener('tidioChat-ready', function () {
+    const chatBtn = document.getElementById('chatBtn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', function () {
+            window.tidioChatApi.open();
+        });
+    }
+});
+</script>
+<script src="/js/notifications.js"></script>
+</body>
+</html>

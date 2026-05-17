@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favorite Courses - Eduphin</title>
+  <link rel="stylesheet" href="/Style/favoriteCourses.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  /* ── Heart button ── */
+  .heart-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    z-index: 2;
+  }
+
+  .heart-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  /* always red on the favorites page (all cards here are favorited) */
+  .heart-btn .fa-heart {
+    font-size: 16px;
+    color: #e53935;
+    transition: color 0.2s ease;
+  }
+
+  /* clicking it (removing) briefly fades to grey before reload */
+  .heart-btn:active .fa-heart {
+    color: #ccc;
+  }
+
+  .item {
+    position: relative;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-container">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">
+      <img src="/img/logoBleu.png" class="logo-img">
+      <span>My Courses</span>
+    </div>
+    <div class="menu">
+      <ul>
+        <li><a href="/courses/All">All Courses</a></li>
+        <li><a href="/studentDashboard/">Dashboard</a></li>
+        <li class="active"><a href="/favoriteCourses/All">Favorite Courses</a></li>
+        <li><a href="/profile/Profile-view">My Profile</a></li>
+      </ul>
+    </div>
+    <br><br><br><br><br><br><br>
+    <a href="/home">
+      <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+    </a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-header">
+      <h2>Favorite <span>Courses</span></h2>
+      <div class="header-actions">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search favorites...">
+        <div class="buttons">
+          <a href="/App/notifications" class="notif-btn">
+            <button class="icon-btn">🔔<span class="notif-badge">0</span></button>
+          </a>
+          <button class="icon-btn" id="chatBtn">💬</button>
+          <a href="/profile/Profile-view">
+            <button class="icon-btn">👤</button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar">
+      <div class="stat-pill">❤️ <span id="favCount">0</span> Saved</div>
+      <div class="stat-pill">⭐️ <span id="ratedCount">0</span> Rated</div>
+      <button class="clear-all-btn" onclick="clearAllFavorites()">🗑 Clear All</button>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-buttons">
+      <button onclick="filterFavorites('all',this)" class="active-filter">All</button>
+      <button onclick="filterFavorites('frontend',this)">Frontend</button>
+      <button onclick="filterFavorites('backend',this)">Backend</button>
+      <button onclick="filterFavorites('database',this)">Database</button>
+      <button onclick="filterFavorites('tools',this)">Tools</button>
+      <button onclick="filterFavorites('design',this)">Design</button>
+      <button onclick="filterFavorites('deployment',this)">Deployment</button>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="emptyState" style="display:none">
+      <h3>No Favorites Yet</h3>
+      <p>You haven't saved any courses yet</p>
+      <a href="/courses/All" class="browse-btn">Browse Courses</a>
+    </div>
+
+    <!-- COURSES -->
+    <div class="courses-container" id="favoritesContainer"></div>
+  </div>
+</div>
+
+<div class="footer">© 2026 Eduphin</div>
+
+<script>
+  // FIX: use allCourses (full catalog) for the courseById map so lookups always work.
+  // The controller now sends allCourses alongside the filtered favorites list.
+  const allCourses  = <%- JSON.stringify(allCourses  || []) %>;
+  const favoriteIds = <%- JSON.stringify(Array.isArray(favoriteIds) ? favoriteIds : []) %>;
+
+  // Build a quick lookup map: courseId → course object
+  const courseById = {};
+  allCourses.forEach(c => { courseById[String(c._id)] = c; });
+
+  const ratingsState = {};
+
+  /* ── Favorites ────────────────────────────────────────────────────────────── */
+  async function toggleFavorite(courseId) {
+    try {
+      const res = await fetch('/favoriteCourses/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || 'Failed');
+        return;
+      }
+      // Reload so server-rendered favoriteIds stay accurate
+      window.location.reload();
+    } catch (err) {
+      console.error('toggleFavorite error:', err);
+      alert('Could not update favorite. Please try again.');
+    }
+  }
+
+  async function clearAllFavorites() {
+    if (!favoriteIds.length) return;
+    if (!confirm('Remove all favorites?')) return;
+    // Remove one by one using the existing toggle endpoint
+    for (const id of favoriteIds) {
+      await fetch('/favoriteCourses/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: id }),
+        credentials: 'include'
+      });
+    }
+    window.location.reload();
+  }
+
+  /* ── Rating ───────────────────────────────────────────────────────────────── */
+  const ratingText = {
+    0: 'Tap to rate',
+    1: 'Poor',
+    2: 'Fair',
+    3: 'Good',
+    4: 'Very Good',
+    5: 'Excellent 🎉'
+  };
+
+  async function buildStars(container) {
+    const courseId = container.dataset.course;
+    const label    = container.nextElementSibling;
+
+    let saved = 0, average = 0, ratingsCount = 0;
+
+    try {
+      const res  = await fetch(`/courses/api/rating/${courseId}`);
+      const data = await res.json();
+      if (data.success) {
+        saved        = Number(data.userRating    || 0);
+        average      = Number(data.averageRating || 0);
+        ratingsCount = Number(data.ratingsCount  || 0);
+        ratingsState[courseId] = saved;
+      }
+    } catch (e) {
+      console.log('Error loading rating');
+    }
+
+    container.innerHTML = '';
+
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('span');
+      star.classList.add('star');
+      star.innerHTML    = '★';
+      star.dataset.value = i;
+      if (i <= saved) star.classList.add('filled');
+
+      star.addEventListener('mouseenter', () => {
+        highlightStars(container, i);
+        label.textContent = ratingText[i];
+      });
+
+      star.addEventListener('mouseleave', () => {
+        highlightStars(container, saved);
+        label.textContent = saved
+          ? `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`
+          : `Tap to rate • Avg ${average.toFixed(1)} (${ratingsCount})`;
+      });
+
+      star.addEventListener('click', async () => {
+        try {
+          const response = await fetch('/courses/api/rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId, rating: i })
+          });
+          const data = await response.json();
+          if (!data.success) {
+            alert(data.message || 'Failed to save rating');
+            return;
+          }
+          saved        = Number(data.userRating    || i);
+          average      = Number(data.averageRating || 0);
+          ratingsCount = Number(data.ratingsCount  || 0);
+          ratingsState[courseId] = saved;
+          highlightStars(container, saved);
+          label.textContent = `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`;
+          updateStats();
+        } catch (err) {
+          console.error(err);
+          alert('Error sending rating');
+        }
+      });
+
+      container.appendChild(star);
+    }
+
+    highlightStars(container, saved);
+    label.textContent = saved
+      ? `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`
+      : `Tap to rate • Avg ${average.toFixed(1)} (${ratingsCount})`;
+
+    updateStats();
+  }
+
+  function highlightStars(container, val) {
+    container.querySelectorAll('.star').forEach(star => {
+      star.classList.toggle('filled', Number(star.dataset.value) <= val);
+    });
+  }
+
+  /* ── Stats ────────────────────────────────────────────────────────────────── */
+  function updateStats() {
+    document.getElementById('favCount').textContent = favoriteIds.length;
+    let rated = 0;
+    favoriteIds.forEach(id => { if (ratingsState[id]) rated++; });
+    document.getElementById('ratedCount').textContent = rated;
+  }
+
+  /* ── Render ───────────────────────────────────────────────────────────────── */
+  function renderFavorites(category = 'all') {
+    const container = document.getElementById('favoritesContainer');
+    const empty     = document.getElementById('emptyState');
+
+    if (!favoriteIds.length) {
+      empty.style.display     = 'flex';
+      container.style.display = 'none';
+      updateStats();
+      return;
+    }
+
+    // FIX: look up courses from the full catalog map, not from the filtered array
+    const filtered = favoriteIds
+      .map(id => courseById[String(id)])
+      .filter(c => c && (category === 'all' || c.category === category));
+
+    container.innerHTML     = '';
+    empty.style.display     = 'none';
+    container.style.display = 'flex';
+
+    filtered.forEach(course => {
+      const card = document.createElement('div');
+      card.className        = 'item';
+      card.dataset.category = course.category;
+
+      // FIX: escape dynamic values to avoid XSS / broken HTML
+      const safeTitle = course.Title.replace(/"/g, '&quot;');
+      const safeDesc  = course.Description || '';
+
+      card.innerHTML = `
+        <button class="heart-btn active" onclick="toggleFavorite('${course._id}')">
+          <i class="fas fa-heart"></i>
+        </button>
+        <img src="${course.image}" class="course-img" alt="${safeTitle}">
+        <h3>${course.Title}</h3>
+        <p>${safeDesc}</p>
+        <div class="card-divider"></div>
+        <div class="star-rating" data-course="${course._id}"></div>
+        <div class="rating-label">Tap to rate</div>
+        <button class="view-details-btn" onclick="viewCourseDetails('${course.slug}')">
+          <i class="fas fa-play-circle"></i> View Details
+        </button>
+      `;
+
+      container.appendChild(card);
+    });
+
+    document.querySelectorAll('.star-rating').forEach(buildStars);
+    updateStats();
+  }
+
+  function filterFavorites(cat, btn) {
+    document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    renderFavorites(cat);
+  }
+
+  document.getElementById('searchInput')?.addEventListener('keyup', function () {
+    const val = this.value.toLowerCase();
+    // FIX: restore 'flex' to preserve card layout
+    document.querySelectorAll('.item').forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(val) ? 'flex' : 'none';
+    });
+  });
+
+  function viewCourseDetails(slug) {
+    window.location.href = '/courses/course/' + slug;
+  }
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  renderFavorites('all');
+</script>
+<script src="//code.tidio.co/ihlzjyy4poj2j2yjxbswichcqxzfdlfk.js" async></script>
+<script>
+document.addEventListener('tidioChat-ready', function () {
+    const chatBtn = document.getElementById('chatBtn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', function () {
+            window.tidioChatApi.open();
+        });
+    }
+});
+</script>
+<script src="/js/notifications.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= course.Title %> | Course Details</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/Style/course.css">
+<style>
+/* PLACEMENT QUIZ STYLES */
+.placement-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.placement-modal {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    animation: slideUp .4s cubic-bezier(.16,1,.3,1);
+}
+@keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-header {
+    padding: 32px 36px 0;
+    border-bottom: 1px solid #f0f0f4;
+    margin-bottom: 28px;
+}
+.modal-header .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.modal-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 10px;
+}
+.modal-header p {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.quiz-progress-bar {
+    height: 3px;
+    background: #f3f4f6;
+    border-radius: 2px;
+    margin-bottom: 28px;
+    overflow: hidden;
+}
+.quiz-progress-fill {
+    height: 100%;
+    background: #2563eb;
+    border-radius: 2px;
+    transition: width .4s ease;
+}
+
+.modal-body { padding: 0 36px 32px; }
+
+.question-block {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color .2s;
+}
+.question-block.answered { border-color: #2563eb; }
+
+.question-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 10px;
+}
+.question-text {
+    color: #111827;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+.question-type-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+}
+.badge-mc   { background: #eff6ff; color: #2563eb; }
+.badge-tf   { background: #f0fdf4; color: #16a34a; }
+.badge-ms   { background: #fff7ed; color: #ea580c; }
+.badge-wr   { background: #fef2f2; color: #dc2626; }
+
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+
+.opt-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .2s;
+    color: #374151;
+    font-size: 14px;
+}
+.opt-label:hover { border-color: #2563eb; color: #111827; background: #eff6ff; }
+.opt-label input { accent-color: #2563eb; width: 16px; height: 16px; }
+.opt-label.selected { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+
+.tf-row { display: flex; gap: 12px; }
+.tf-btn-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all .2s;
+    color: #6b7280;
+}
+.tf-btn-label:has(input:checked).true-opt  { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.tf-btn-label:has(input:checked).false-opt { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+.tf-btn-label input { display: none; }
+
+.written-input {
+    width: 100%;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    color: #111827;
+    padding: 13px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+    resize: vertical;
+    min-height: 80px;
+}
+.written-input:focus { border-color: #dc2626; }
+
+.modal-footer {
+    padding: 0 36px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.quiz-submit-btn {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.quiz-submit-btn:hover { opacity: .85; transform: translateY(-1px); }
+.quiz-submit-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.quiz-counter { color: #9ca3af; font-size: 14px; }
+
+/* ── RESULT SCREEN ── */
+.result-screen {
+    display: none;
+    padding: 48px 36px;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+.result-screen.visible { display: flex; }
+
+.score-ring {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid;
+    margin: 0 auto;
+    animation: popIn .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+
+.score-ring.beginner     { border-color: #16a34a; background: #f0fdf4; }
+.score-ring.intermediate { border-color: #ea580c; background: #fff7ed; }
+.score-ring.advanced     { border-color: #2563eb; background: #eff6ff; }
+
+.score-pct {
+    font-size: 36px;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    line-height: 1;
+}
+.score-ring.beginner     .score-pct { color: #15803d; }
+.score-ring.intermediate .score-pct { color: #c2410c; }
+.score-ring.advanced     .score-pct { color: #1d4ed8; }
+
+.score-label { font-size: 12px; color: #9ca3af; margin-top: 2px; font-weight: 600; letter-spacing: .5px; }
+
+.result-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.level-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Syne', sans-serif;
+}
+.level-pill.beginner     { background: #f0fdf4; color: #15803d; border: 2px solid #16a34a; }
+.level-pill.intermediate { background: #fff7ed; color: #c2410c; border: 2px solid #ea580c; }
+.level-pill.advanced     { background: #eff6ff; color: #1d4ed8; border: 2px solid #2563eb; }
+
+.result-desc { color: #6b7280; font-size: 15px; max-width: 420px; line-height: 1.6; }
+
+.start-learning-btn {
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity .2s, transform .2s;
+    margin-top: 8px;
+}
+.start-learning-btn:hover { opacity: .85; transform: translateY(-2px); }
+
+.level-icon { font-size: 48px; animation: bounce 1s ease infinite alternate; }
+@keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-8px)} }
+
+.no-quiz-notice {
+    text-align: center;
+    padding: 48px 36px;
+    color: #9ca3af;
+}
+.no-quiz-notice i { font-size: 40px; margin-bottom: 16px; color: #d1d5db; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="page-container">
+<button class="sidebar-hidden-toggle" id="sidebarHiddenToggle">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="logo" id="logoToggle">
+        <div class="logo-content">
+            <img src="/img/logoBleu.png" class="logo-img">
+            <span>My Courses</span>
+        </div>
+        <i class="fas fa-chevron-left toggle-icon"></i>
+    </div>
+    <div class="menu">
+        <ul>
+            <li><a href="/courses/All">All Courses</a></li>
+            <li><a href="/studentDashboard/">Dashboard</a></li>
+            <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+            <li><a href="/profile/Profile-view">My Profile</a></li>
+        </ul>
+    </div>
+    <a href="/home">
+        <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+    </a>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent">
+    <div class="main-header">
+        <h2>Course <span>Details</span></h2>
+    </div>
+
+    <div class="course-container">
+<% 
+                const instructorName = course.Instructor && course.Instructor.userName ? course.Instructor.userName : 'Instructor';
+                const lessonCount = course.lessons && course.lessons.length ? course.lessons.length : 0;
+                const ratingText = course.rating && course.rating.length
+                    ? Number(course.averageRating || 0).toFixed(1) + ' (' + course.rating.length + ' ratings)'
+                    : 'No ratings yet';
+            %>
+            <div class="course-header">
+                <h1><%= course.Title %></h1>
+                <div class="course-meta">
+                    <span><i class="fas fa-chalkboard-user"></i> <%= instructorName %></span>
+                    <span>
+                        <i class="fas fa-star" style="color:var(--orange)"></i>
+                        <%= ratingText %>
+                    </span>
+                    <span><i class="fas fa-book"></i> <%= lessonCount %> lessons</span>
+            </div>
+            <p class="course-description"><%= course.Description %></p>
+
+            <div class="quiz-section">
+                <h3><i class="fas fa-brain"></i> Level Assessment Quiz</h3>
+                <p>Complete this quiz to unlock personalized lessons tailored to your skill level.</p>
+                <% if(showPlacementQuiz && placementQuiz) { %>
+                    <button class="quiz-btn" onclick="document.getElementById('placementOverlay').style.display='flex'">
+                        <i class="fas fa-play-circle"></i> Start Level Quiz
+                    </button>
+                <% } else { %>
+                    <p style="color:#888;margin-top:12px"><i class="fas fa-info-circle"></i> No placement quiz available yet.</p>
+                <% } %>
+            </div>
+
+            <% 
+                const progressPercent = courseStats && courseStats.progressPercent != null ? courseStats.progressPercent : 0;
+            %>
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>Your Progress</span>
+                    <span><strong id="progressPercent"><%= progressPercent %>%</strong></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width:<%= progressPercent %>%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-full-width">
+            <h3><i class="fas fa-chart-simple"></i> Quick Stats</h3>
+            <div class="stats-grid">
+                <% 
+                const completedLessons = courseStats && courseStats.completedLessons != null ? courseStats.completedLessons : 0;
+                const totalLessons = courseStats && courseStats.totalLessons != null ? courseStats.totalLessons : 0;
+                const currentStreak = courseStats && courseStats.currentStreak != null ? courseStats.currentStreak : 0;
+                const timeSpentText = courseStats && courseStats.timeSpentText ? courseStats.timeSpentText : '0h 0m';
+                const quizAverage = courseStats && courseStats.quizAverage != null ? courseStats.quizAverage : 0;
+            %>
+            <div class="stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Lessons Completed</span>
+                    <strong id="completedCount"><%= completedLessons %>/<%= totalLessons %></strong>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-fire"></i>
+                    <span>Current Streak</span>
+                    <strong><%= currentStreak %> days</strong>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>Time Spent</span>
+                    <strong id="timeSpent"><%= timeSpentText %></strong>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quiz Average</span>
+                    <strong><%= quizAverage %>%</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title"><i class="fas fa-list"></i> Course Content</h2>
+            <% if(course.lessons && course.lessons.length > 0){ %>
+                <% course.lessons.forEach((lesson, index) => { %>
+                <div class="lesson-item" data-progress="0">
+                    <div class="lesson-info">
+                        <i class="fas fa-play-circle"></i>
+                        <div>
+                            <h4>Lesson <%= index+1 %>: <%= lesson.name %></h4>
+                            <p><%= lesson.type || "Video" %> · <%= lesson.level %></p>
+                        </div>
+                    </div>
+                    <div class="lesson-progress">🔒 Complete quiz first</div>
+                </div>
+                <% }) %>
+            <% } else { %>
+                <p>No lessons available yet.</p>
+            <% } %>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- PLACEMENT QUIZ OVERLAY -->
+<% if(showPlacementQuiz && placementQuiz) { %>
+<div class="placement-overlay" id="placementOverlay" style="display:none">
+    <div class="placement-modal">
+
+        <!-- QUIZ FORM -->
+        <div id="quizForm">
+            <div class="modal-header">
+                <div class="tag"><i class="fas fa-brain"></i> Placement Quiz</div>
+                <h2><%= placementQuiz.title %></h2>
+                <p>Answer all questions honestly. Your results determine your starting level — beginner, intermediate, or advanced.</p>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quizProgressFill" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <form id="placementForm">
+                    <input type="hidden" name="courseId" value="<%= course._id %>">
+                    <%
+                    const quizId = placementQuiz._id ? placementQuiz._id.toString() : '';
+                    %>
+                    <% if(quizId) { %>
+                        <input type="hidden" name="quizId" value="<%= quizId %>">
+                    <% } %>
+
+                    <% placementQuiz.questions.forEach((q, idx) => {
+                        const type = q.questionType || 'multiple-choice';
+                        const badgeClass = type === 'true-false' ? 'badge-tf'
+                            : type === 'multi-select' ? 'badge-ms'
+                            : type === 'written' ? 'badge-wr'
+                            : 'badge-mc';
+                        const badgeLabel = type === 'true-false' ? 'True / False'
+                            : type === 'multi-select' ? 'Select all that apply'
+                            : type === 'written' ? 'Written Answer'
+                            : 'Multiple Choice'; %>
+                    <div class="question-block" id="qblock-<%= idx %>">
+                        <div class="question-num">Question <%= idx+1 %> of <%= placementQuiz.questions.length %></div>
+                        <div class="question-type-badge <%= badgeClass %>"><%= badgeLabel %></div>
+                        <div class="question-text"><%= q.question %></div>
+
+                        <% if(type === 'true-false') { %>
+                            <div class="tf-row">
+                                <label class="tf-btn-label true-opt">
+                                    <input type="radio" name="answers[<%= idx %>]" value="0" required
+                                           onchange="markAnswered(<%= idx %>); updateProgress();">
+                                    <i class="fas fa-check"></i> True
+                                </label>
+                                <label class="tf-btn-label false-opt">
+                                    <input type="radio" name="answers[<%= idx %>]" value="1" required
+                                           onchange="markAnswered(<%= idx %>); updateProgress();">
+                                    <i class="fas fa-times"></i> False
+                                </label>
+                            </div>
+
+                        <% } else if(type === 'multiple-choice') { %>
+                            <div class="options-list">
+                                <% q.options.forEach((opt, optIdx) => { %>
+                                <label class="opt-label" id="opt-<%= idx %>-<%= optIdx %>">
+                                    <input type="radio" name="answers[<%= idx %>]" value="<%= optIdx %>" required
+                                           onchange="selectOpt(<%= idx %>, <%= optIdx %>, 'radio'); updateProgress()">
+                                    <span><strong><%= String.fromCharCode(65+optIdx) %>.</strong> <%= opt %></span>
+                                </label>
+                                <% }) %>
+                            </div>
+
+                        <% } else if(type === 'multi-select') { %>
+                            <p style="font-size:12px;color:#9ca3af;margin-bottom:10px">
+                                <i class="fas fa-info-circle"></i> Select all correct answers
+                            </p>
+                            <div class="options-list">
+                                <% q.options.forEach((opt, optIdx) => { %>
+                                <label class="opt-label" id="opt-<%= idx %>-<%= optIdx %>">
+                                    <input type="checkbox" name="answers[<%= idx %>][]" value="<%= optIdx %>"
+                                           onchange="selectOpt(<%= idx %>, <%= optIdx %>, 'check'); updateProgress()">
+                                    <span><strong><%= String.fromCharCode(65+optIdx) %>.</strong> <%= opt %></span>
+                                </label>
+                                <% }) %>
+                            </div>
+
+                        <% } else if(type === 'written') { %>
+                            <textarea class="written-input"
+                                name="answers[<%= idx %>]"
+                                placeholder="Type your answer here…"
+                                required
+                                oninput="markAnswered(<%= idx %>); updateProgress()"></textarea>
+                        <% } %>
+                    </div>
+                    <% }) %>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <span class="quiz-counter" id="answerCounter">0 / <%= placementQuiz.questions.length %> answered</span>
+                <button class="quiz-submit-btn" id="submitBtn" onclick="submitPlacementQuiz()">
+                    <i class="fas fa-paper-plane"></i> Submit Quiz
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div class="result-screen" id="resultScreen">
+            <div class="level-icon" id="resultIcon">🌱</div>
+            <div class="score-ring" id="scoreRing">
+                <div class="score-pct" id="scorePct">0%</div>
+                <div class="score-label">YOUR SCORE</div>
+            </div>
+            <div class="result-title">Your Level is Determined!</div>
+            <div class="level-pill" id="levelPill">Beginner</div>
+            <div class="result-desc" id="resultDesc"></div>
+            <a href="#" class="start-learning-btn" id="startLearningBtn">
+                <i class="fas fa-rocket"></i> Start Learning
+            </a>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<script>
+const TOTAL_QUESTIONS = <%= (placementQuiz && placementQuiz.questions) ? placementQuiz.questions.length : 0 %>;
+const answeredSet = new Set();
+// mark a question as answered and update its UI state
+function markAnswered(idx) {
+    answeredSet.add(idx);
+    document.querySelector(`#qblock-${idx}`)?.classList.add('answered');
+}
+
+// handle option selection for both radio and checkbox types
+function selectOpt(qIdx, optIdx, type) {
+    markAnswered(qIdx);
+    const siblings = document.querySelectorAll(`[id^="opt-${qIdx}-"]`);
+    siblings.forEach(el => el.classList.remove('selected'));
+    if (type === 'radio') {
+        document.getElementById(`opt-${qIdx}-${optIdx}`)?.classList.add('selected');
+    } else {
+        siblings.forEach(el => {
+            const cb = el.querySelector('input[type="checkbox"]');
+            if (cb?.checked) el.classList.add('selected');
+        });
+    }
+}
+
+// update the quiz progress bar and counter
+function updateProgress() {
+    const filled  = document.getElementById('quizProgressFill');
+    const counter = document.getElementById('answerCounter');
+    const pct = TOTAL_QUESTIONS ? (answeredSet.size / TOTAL_QUESTIONS * 100) : 0;
+    if (filled)  filled.style.width = pct + '%';
+    if (counter) counter.textContent = `${answeredSet.size} / ${TOTAL_QUESTIONS} answered`;
+}
+
+// gather answers and submit the quiz
+async function submitPlacementQuiz() {
+    const form = document.getElementById('placementForm');
+    if (!form) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+
+    const formData   = new FormData(form);
+    const answers    = {};
+    const multiSelect = {};
+
+    for (const [key, value] of formData.entries()) {
+        const msMatch = key.match(/^answers\[(\d+)\]\[\]$/);
+        const sMatch  = key.match(/^answers\[(\d+)\]$/);
+        if (msMatch) {
+            const i = msMatch[1];
+            if (!multiSelect[i]) multiSelect[i] = [];
+            multiSelect[i].push(value);
+        } else if (sMatch) {
+            answers[sMatch[1]] = value;
+        }
+    }
+    Object.entries(multiSelect).forEach(([i, vals]) => { answers[i] = vals; });
+
+    const payload = { courseId: formData.get('courseId'), answers };
+    const quizId  = formData.get('quizId');
+    if (quizId) payload.quizId = quizId;
+
+    try {
+        const res  = await fetch('/courses/api/submit-quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showResult(data);
+        } else {
+            alert(data.message || 'Something went wrong.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+        }
+    } catch (err) {
+        alert('Network error: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+    }
+}
+
+// display the result screen with score and level info, then redirect to course content
+function showResult(data) {
+    document.getElementById('quizForm').style.display = 'none';
+    document.getElementById('resultScreen').classList.add('visible');
+
+    const scoreRing = document.getElementById('scoreRing');
+    const scorePct  = document.getElementById('scorePct');
+
+    scoreRing.className = 'score-ring ' + data.level;
+
+    const pill = document.getElementById('levelPill');
+    pill.className = 'level-pill ' + data.level;
+    pill.textContent = data.level.charAt(0).toUpperCase() + data.level.slice(1);
+
+    document.getElementById('resultDesc').textContent = data.levelDescription || '';
+
+    animateNumber(scorePct, 0, Math.round(data.score), 800);
+
+    setTimeout(() => {
+        window.location.href = data.redirectUrl;
+    }, 2000);
+}
+
+// simple number animation from 'from' to 'to' over 'duration' milliseconds
+function animateNumber(el, from, to, duration) {
+    const start  = performance.now();
+    const update = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        el.textContent = Math.round(from + (to - from) * t) + '%';
+        if (t < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+}
+</script>
+
+<script src="/js/course-details.js"></script>
+</body>
+</html>

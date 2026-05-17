@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduphin | Student Analytics</title>
+    <link rel="stylesheet" href="/Style/studentAnalytics.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="page-container">
+    <!-- SIDEBAR  -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img" alt="logo">
+            <span>Eduphin</span>
+        </div>
+        <div class="menu">
+            <ul>
+                <li class="active">Student Analytics</li>
+                <li><a href="/teacherDashboard/get">Home</a></li>
+                <li><a href="/profile/Profile-view">My Profile</a></li>
+                <li><a href="/App/createCourse">Create Course</a></li>
+            </ul>
+        </div>
+       <br> <br> <br> <br> <br>  <br> <br> 
+        <a href="/home">
+   <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+</a>
+    </div>
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="main-header">
+            <h2>Student <span>Analytics</span></h2>
+        </div>
+
+        <!-- CARDS -->
+        <h3>Overview</h3>
+
+        <div class="dashboard-container">
+            <div class="cards">
+
+                <div class="card">
+                    <div class="feature-icon icon-blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h4>Total Students</h4>
+                    <p class="big">50</p>
+                </div>
+
+                <div class="card">
+                    <div class="feature-icon icon-orange">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h4>Average Score</h4>
+                    <p class="big">14%</p>
+                </div>
+
+                <div class="card">
+                    <div class="feature-icon icon-cryan">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <h4>Active Students</h4>
+                    <p class="big">24</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CHART -->
+        <h3>Performance Overview</h3>
+        <canvas id="performanceChart" height="100"></canvas>
+
+        <!-- TABLE -->
+        <h3>Students List</h3>
+
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Progress</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Anfel</td>
+                    <td>Frontend Development</td>
+                    <td>70%</td>
+                    <td>15</td>
+                    <td><span class="active">Active</span></td>
+                </tr>
+
+                <tr>
+                    <td>Sara</td>
+                    <td>Backend Development</td>
+                    <td>40%</td>
+                    <td>12</td>
+                    <td><span class="active">Active</span></td>
+                </tr>
+
+                <tr>
+                    <td>Omar</td>
+                    <td>Web Development</td>
+                    <td>0%</td>
+                    <td>8</td>
+                    <td><span class="inactive">Inactive</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- FOOTER -->
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+    </div>
+</div>
+
+<!-- CHART -->
+<script>
+const ctx = document.getElementById('performanceChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ["Frontend Development", "Backend Development", "Web Development" , "Mobile Development", "Full Stack Development" , "DevOps", "Cloud Computing"],
+        datasets: [{
+            label: 'Average Score',
+            data: [15, 12, 10, 8, 14, 11, 9],
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

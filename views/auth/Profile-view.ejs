@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Profile</title>
+  <link rel="stylesheet" href="/Style/Profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3 class="logo">My Profile</h3>
+
+    <ul>
+      <li class="active">My Profile</li>
+      <li><a href="/studentDashboard/">Dashboard</a></li>
+      <li><a href="/courses/All">All Courses</a></li>
+      <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+    </ul>
+<br> <br> <br> <br> <br>  <br> <br> <br> 
+    <!-- Logout صحيح -->
+    <a href="/home">
+      <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <h2>Student <span>Profile</span></h2>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+
+      <div class="profile-info">
+
+        <!-- photo-->
+        <div class="avatar-container">
+          <% if (profile && profile.profilePicture) { %>
+            <img class="avatar" src="<%= profile.profilePicture %>" alt="Profile">
+          <% } else { %>
+            <img class="avatar" src="/images/default.png" alt="Default Profile">
+          <% } %>
+        </div>
+
+        <!-- user details -->
+        <div class="user-details">
+          <h3><%= profile?.userName || 'No username' %></h3>
+          <p><%= profile?.bio || 'No bio available' %></p>
+        </div>
+
+      </div>
+
+      <!-- زر edit -->
+      <div class="header-buttons">
+        <a href="/App/editProfile">
+          <button class="icon-btn">Edit Profile</button>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Personal Info -->
+    <div class="info-box">
+      <div class="box-header">
+        <h3 class="box-title">Personal Information</h3>
+        <span class="box-icon">👤</span>
+      </div>
+
+      <div class="box-content">
+
+        <div class="row">
+          <div class="input-group">
+            <label>First Name</label>
+            <div class="info-value"><%= profile?.firstName || '' %></div>
+          </div>
+
+          <div class="input-group">
+            <label>Last Name</label>
+            <div class="info-value"><%= profile?.lastName || '' %></div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>User Name</label>
+          <div class="info-value"><%= profile?.userName || '' %></div>
+        </div>
+
+        <div class="row">
+          <div class="input-group">
+            <label>Email Address</label>
+            <div class="info-value"><%= profile?.email || '' %></div>
+          </div>
+
+          <div class="input-group">
+            <label>Phone Number</label>
+            <div class="info-value"><%= profile?.PhoneNumber || '' %></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="info-box">
+      <div class="box-header">
+        <h3 class="box-title">Skills & Track</h3>
+        <span class="box-icon">⚡️</span>
+      </div>
+
+      <div class="box-content">
+        <div class="row">
+          <div class="input-group">
+            <label>Main track</label>
+            <div class="info-value"><%= profile?.mainTrack || '' %></div>
+          </div>
+
+          <div class="input-group">
+            <label>Skill level</label>
+            <div class="info-value"><%= profile?.skillLevel || '' %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+     <!-- FOOTER -->
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+
+  </div>
+
+</div>
+
+</body>
+</html>

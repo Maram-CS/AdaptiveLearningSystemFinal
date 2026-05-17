@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduphin | Create Course</title>
+    <link rel="stylesheet" href="/Style/createCourse.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="page-container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoBleu.png" class="logo-img" alt="Eduphin Logo">
+            <span>Eduphin</span>
+        </div>
+        <div class="menu">
+            <ul>
+                <li class="active">Create Course</li>
+                <li><a href="/teacherDashboard/get">Home</a></li>
+                <li><a href="/profile/Profile-view">My Profile</a></li>
+                <li><a href="/App/studentAnalytics">Student Analytics</a></li>
+            </ul>
+        </div>
+        <br><br><br><br><br>
+        <a href="/home">
+            <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+        </a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="main-header">
+            <h2>Create <span>Course</span></h2>
+        </div>
+        <br>
+
+        <!-- BREADCRUMB -->
+        <div style="padding: 0 2rem;">
+            <h3><span class="orange">New</span> <span class="blue">Course</span></h3>
+            <p class="breadcrumb">
+                <a href="/teacherDashboard/get">Home</a> &rsaquo; Create Course
+            </p>
+        </div>
+
+        <!-- Toast notification -->
+        <div id="toast" style="
+            display: none;
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            padding: 14px 20px; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        "></div>
+
+        <div style="padding: 0 2rem 2rem;">
+
+            <form id="create-course-form" action="/courses/create" method="POST" enctype="multipart/form-data">
+
+                <!-- BASIC INFO -->
+                <div class="form-section">
+                    <div class="form-section-title">Basic info</div>
+
+                    <div class="field">
+                        <label for="title">Course Title *</label>
+                        <input type="text" id="title" name="Title" placeholder="Complete Node.js Bootcamp" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="Description" placeholder="What will students learn?" required></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="frontend">Frontend</option>
+                            <option value="backend">Backend</option>
+                            <option value="database">Database</option>
+                            <option value="tools">Tools</option>
+                            <option value="design">Design</option>
+                            <option value="deployment">Deployment</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- COURSE DETAILS -->
+                <div class="form-section">
+                    <div class="form-section-title">Course details</div>
+
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label for="level">Level</label>
+                            <select id="level" name="level" required>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="totalDuration">Total Duration</label>
+                            <input type="text" id="totalDuration" name="totalDuration" placeholder="12h 30m">
+                        </div>
+
+                        <div class="field">
+                            <label for="price">Price (USD)</label>
+                            <input type="number" id="price" name="price" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="slug">Slug</label>
+                        <input type="text" id="slug" name="slug" placeholder="auto-generated from title">
+                    </div>
+                </div>
+
+                <!-- MEDIA -->
+                <div class="form-section">
+                    <div class="form-section-title">Media</div>
+
+                    <div class="field">
+                        <label>Course Thumbnail *</label>
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label for="image" style="
+                                display:inline-flex; align-items:center; gap:8px;
+                                padding:8px 16px; background:transparent;
+                                border:1px solid #ccc; border-radius:6px;
+                                cursor:pointer; font-size:14px; color:inherit;">
+                                📁 Upload Image
+                                <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/jpg" required style="display:none;" onchange="previewImg(this)">
+                            </label>
+                            <span id="file-name" style="font-size:13px; color:#888;">No file chosen</span>
+                        </div>
+
+                        <div id="img-preview" style="
+                            margin-top:12px; width:180px; height:110px;
+                            border:1px dashed #ccc; border-radius:8px;
+                            display:flex; flex-direction:column;
+                            align-items:center; justify-content:center;
+                            color:#aaa; font-size:13px; gap:6px; overflow:hidden;">
+                            🖼️ Image preview
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LESSONS -->
+                <div class="form-section">
+                    <div class="form-section-title">Lessons</div>
+                    <div id="lessons-container"></div>
+                    <button type="button" class="btn-create" onclick="addLesson()" style="margin-top:10px;">+ Add Lesson</button>
+                </div>
+
+                <!-- VISIBILITY -->
+                <div class="form-section">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="isPublished" name="isPublished" checked>
+                        Publish immediately
+                    </label>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="form-actions">
+                    <button type="button" class="btn-reset" onclick="resetForm()">Reset</button>
+                    <button type="submit" class="btn-create" id="submit-btn">Create Course</button>
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+    </div>
+</div>
+
+<script>
+let lessonIndex = 0;
+
+// Auto slug from title
+document.getElementById('title').addEventListener('input', function () {
+    const slugInput = document.getElementById('slug');
+    if (slugInput) {
+        slugInput.value = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+    }
+});
+
+// Image preview
+function previewImg(input) {
+    const preview = document.getElementById('img-preview');
+    const label = document.getElementById('file-name');
+
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.style.backgroundImage = `url(${e.target.result})`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+            preview.innerHTML = '';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        label.textContent = 'No file chosen';
+        preview.style.backgroundImage = '';
+        preview.innerHTML = '🖼️ Image preview';
+    }
+}
+
+// Toast helper
+function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = isError ? '#fee2e2' : '#dcfce7';
+    toast.style.color = isError ? '#b91c1c' : '#166534';
+    toast.style.border = isError ? '1px solid #f87171' : '1px solid #86efac';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+}
+
+// Reset form
+function resetForm() {
+    document.getElementById('create-course-form').reset();
+    document.getElementById('slug').value = '';
+    document.getElementById('file-name').textContent = 'No file chosen';
+    const preview = document.getElementById('img-preview');
+    preview.style.backgroundImage = '';
+    preview.innerHTML = '🖼️ Image preview';
+    document.getElementById('lessons-container').innerHTML = '';
+    lessonIndex = 0;
+}
+
+// Form submit via fetch
+document.getElementById('create-course-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        const formData = new FormData(this);
+        const response = await fetch('/courses/create', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to create course');
+        }
+
+        showToast('✅ Course created successfully!');
+        setTimeout(() => {
+            window.location.href = '/teacherDashboard/get';
+        }, 1500);
+
+    } catch (err) {
+        console.error(err);
+        showToast('❌ ' + err.message, true);
+        btn.disabled = false;
+        btn.textContent = 'Create Course';
+    }
+});
+
+// Add lesson
+function addLesson() {
+    const container = document.getElementById('lessons-container');
+    const idx = lessonIndex;
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('form-section');
+    wrapper.style.marginTop = '15px';
+    wrapper.setAttribute('data-lesson-index', idx);
+
+    wrapper.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>Lesson ${idx + 1}</strong>
+            <button type="button" onclick="this.closest('[data-lesson-index]').remove(); reindexLessons();" class="btn-reset" style="padding:4px 10px;">✕ Remove</button>
+        </div>
+
+        <div class="field">
+            <label>Lesson Name *</label>
+            <input type="text" name="lessons[${idx}][name]" placeholder="Introduction to Node.js" required>
+        </div>
+
+        <div class="field">
+            <label>Lesson Type</label>
+            <select name="lessons[${idx}][type]" onchange="changeFileAccept(this, ${idx})">
+                <option value="video">Video</option>
+                <option value="PDF">PDF</option>
+            </select>
+        </div>
+
+        <!-- ✅ LESSON LEVEL ADDED -->
+        <div class="field">
+            <label>Lesson Level</label>
+            <select name="lessons[${idx}][level]">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Duration *</label>
+            <input type="text" name="lessons[${idx}][duration]" placeholder="10 min" required>
+        </div>
+
+        <div class="field">
+            <label>Upload File (PDF or Video) *</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="lessonFile-${idx}" style="
+                    background: #4F46E5;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    display: inline-block;
+                ">
+                    📁 Choose File
+                </label>
+
+                <input type="file" 
+                       id="lessonFile-${idx}"
+                       name="lessonFiles" 
+                       accept="video/mp4,video/webm,application/pdf"
+                       style="display: none;"
+                       required>
+
+                <span id="lessonFileName-${idx}" style="color: #666;">
+                    No file chosen
+                </span>
+            </div>
+        </div>
+    `;
+
+    // file name preview
+    const fileInput = wrapper.querySelector(`#lessonFile-${idx}`);
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const span = document.getElementById(`lessonFileName-${idx}`);
+            if (span) {
+                span.textContent = this.files[0] ? this.files[0].name : 'No file chosen';
+            }
+        });
+    }
+
+    container.appendChild(wrapper);
+    lessonIndex++;
+}
+// Change accepted file types
+function changeFileAccept(select, idx) {
+    const input = document.getElementById(`lessonFile-${idx}`);
+    if (!input) return;
+    input.accept = select.value === 'PDF' ? 'application/pdf' : 'video/mp4,video/webm';
+}
+
+// Re-index lessons after removal
+function reindexLessons() {
+    const lessons = document.querySelectorAll('#lessons-container > [data-lesson-index]');
+    lessons.forEach((lesson, newIdx) => {
+        lesson.setAttribute('data-lesson-index', newIdx);
+        
+        const strong = lesson.querySelector('strong');
+        if (strong) strong.textContent = `Lesson ${newIdx + 1}`;
+        
+        const inputs = lesson.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) {
+                input.setAttribute('name', name.replace(/lessons\[\d+\]/, `lessons[${newIdx}]`));
+            }
+        });
+    });
+    lessonIndex = lessons.length;
+}
+</script>
+
+</body>
+</html>

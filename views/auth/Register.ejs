@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up - Eduphin</title>
+    <!-- Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/Style/Register.css"> 
+</head>
+<body>
+
+<div class="auth-wrapper">
+    
+    <div class="credentials-panel signup">
+        <h2 class="slide-element">Sign Up</h2>
+
+        <form id="signupForm" action="/auth/register" method="post">
+            <div class="field-wrapper slide-element">
+                <input type="text" name="userName" required placeholder=" ">
+                <label>Name</label>
+                <i class="fas fa-user"></i>
+            </div>
+
+            <div class="field-wrapper slide-element">
+                <input type="email" name="email" required placeholder=" ">
+                <label>Email</label>
+                <i class="fas fa-envelope"></i>
+            </div>
+
+
+<div class="field-wrapper slide-element">
+    <select name="role" id="role" required>
+        <option value="" disabled selected></option> <!-- فارغ -->
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+    </select>
+    <label for="role">I am a</label> 
+    <i class="fas fa-user-graduate"></i>
+</div>
+
+            <div class="field-wrapper slide-element">
+                <input type="password" name="password" id="loginPassword" required placeholder=" ">
+                <label>Password</label>
+                <i class="fas fa-lock toggle-password" id="toggleLoginPassword"></i>
+            </div>
+
+            <button type="submit" class="submit-button slide-element">
+                Sign Up
+            </button>
+
+            <div class="switch-link slide-element">
+                Already have an account? 
+                <br>
+                <a href="/login">Sign in</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- قسم الترحيب -->
+    <div class="welcome-section signup">
+        <h2 class="slide-element">Join Eduphin & Start Coding!</h2>
+        <p class="slide-element">
+            Create your account & dive into programming.
+        </p>
+    </div>
+
+    <!-- الأشكال الخلفية -->
+    <div class="background-shape"></div>
+    <div class="secondary-shape"></div>
+</div>
+
+<!-- الفوتر -->
+<div class="footer">
+    © 2026 Eduphin. All rights reserved.
+</div>
+
+<script>
+    const toggleLoginPassword = document.getElementById("toggleLoginPassword");
+    const loginPassword = document.getElementById("loginPassword");
+
+    toggleLoginPassword.addEventListener("click", function () {
+
+        if (loginPassword.type === "password") {
+            loginPassword.type = "text";
+            this.classList.remove("fa-lock");
+            this.classList.add("fa-unlock");
+        } else {
+            loginPassword.type = "password";
+            this.classList.remove("fa-unlock");
+            this.classList.add("fa-lock");
+        }
+
+    });
+
+
+   const form = document.getElementById("signupForm");
+
+form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const data = {
+        userName: form.userName.value,
+        email: form.email.value,
+        password: form.password.value,
+        role: form.role.value
+    };
+
+    const response = await fetch("/auth/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if(result.status === "exists"){
+        alert("This email already exists");
+        window.location.href = "/login";
+    }
+    else if(result.status === "user Added"){
+        alert("Account created successfully!");
+        window.location.href = "/login";
+    }
+    else if(result.status === "error"){
+        alert(result.message);
+        window.location.href = "/register";
+    }
+
+});
+</script>
+
+</body>
+</html>

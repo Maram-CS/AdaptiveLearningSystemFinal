@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign in - Eduphin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/Style/Register.css"> 
+</head>
+<body>
+
+<div class="auth-wrapper">
+    <div class="credentials-panel signin">
+        <h2 class="slide-element">Sign in</h2>
+
+        <form action="/auth/login" method="post">
+            <div class="field-wrapper slide-element">
+                <input type="email" name="email" required placeholder=" ">
+                <label>Email</label>
+                <i class="fas fa-envelope"></i>
+            </div>
+
+            <div class="field-wrapper slide-element">
+                <input type="password" name="password" id="loginPassword" required placeholder=" ">
+                <label>Password</label>
+                <i class="fas fa-lock toggle-password" id="toggleLoginPassword"></i>
+            </div>
+
+            <button type="submit" class="submit-button slide-element">
+               Sign in
+            </button>
+
+            <div class="switch-link slide-element">
+                Don't have an account? 
+                <br>
+                <a href="/register">Sign Up</a>
+            </div>
+            <div class="switch-link slide-element" >
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="welcome-section signin">
+        <h2 class="slide-element">Welcome Back to Eduphin!</h2>
+        <p class="slide-element">
+           Continue your coding journey and master new skills today.
+        </p>
+    </div>
+
+    <div class="background-shape"></div>
+    <div class="secondary-shape"></div>
+</div>
+
+<!-- Floating decorative elements -->
+<div class="floating-element floating-1">🎓</div>
+<div class="floating-element floating-2">&lt;/&gt;</div>
+<div class="floating-element floating-3">💻</div>
+
+<div class="footer">
+    © 2026 Eduphin. All rights reserved.
+</div>
+
+
+<script>
+    const toggleLoginPassword = document.getElementById("toggleLoginPassword");
+    const loginPassword = document.getElementById("loginPassword");
+
+    toggleLoginPassword.addEventListener("click", function () {
+
+        if (loginPassword.type === "password") {
+            loginPassword.type = "text";
+            this.classList.remove("fa-lock");
+            this.classList.add("fa-unlock");
+        } else {
+            loginPassword.type = "password";
+            this.classList.remove("fa-unlock");
+            this.classList.add("fa-lock");
+        }
+
+    });
+</script>
+<% if (typeof error !== "undefined") { %>
+<script>
+  alert("<%= error %>");
+</script>
+<% } %>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("reset") === "success") {
+    alert("✅ Password updated successfully");
+  }
+</script>
+
+</body>
+</html>
+
+

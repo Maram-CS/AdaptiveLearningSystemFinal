@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduphin - Contact Us</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/Style/contact.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<div class="container">
+    <div class="navbar">
+        <div class="logo">
+            <h2>Edu<span>Phin</span></h2>
+            
+        </div>
+        <ul class="nav-links">
+            <h2>Welcome! <span style="color:#f4a640;">Your</span> Questions <span style="color:#f4a640;">Matter</span></h2>
+        </ul>
+    </div>
+    <div class="breadcrumb">
+        <a href="/home">Home</a> &gt; <span>Contact Us</span>
+    </div>
+</div>
+
+<!-- Main Contact Area -->
+<div class="container">
+    <div class="contact-grid">
+        <!-- Left Column: Info & reviews -->
+        <div>
+            <div class="help-box">
+                <h3>Let <span style="color:#f4a640;">Us</span> Help <span style="color:#f4a640;">You</span></h3>
+                <p>At Eduphin, we are committed to providing an innovative, high-quality, and inclusive learning experience. Feel free to reach out to us for any questions or support.</p>
+                <div class="office-details">
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <strong>EduPhin Team</strong>
+                            <span>Based at University Constantine 2, Algeria</span>
+                            
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email Address</strong>
+                            <div>
+                                <a href="mailto:info@easymile@gmail.com">EduPhinInfo@gmail.com</a><br>
+                                </div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <div>
+                            <strong>Phone Number</strong>
+                            <div class="phone-group">
+                                <span>(+213) 550-125-345</span>
+                                <span>(+213) 661-126-456</span>
+                                <span>(+213) 31-012-789</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-contact" id="contactUsTodayBtn">Contact Us Now</button>
+            </div>
+
+            <div class="rating-section">
+                <div class="stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                <p>2.5k reviews (4.95 of 5)</p>
+                <p style="font-size: 0.9rem; margin-top: 6px;">We are passionate about transforming lives through education.<span style="color:#f4a640;"> EduPhin</span> was founded with a vision to make learning accessible to all.</p>
+            </div>
+        </div>
+
+        <!-- Right Column: Get In Touch Form -->
+        <div class="form-card">
+            <h2>Get <span style="color:#f4a640;">In</span> Touch</h2>
+            <p>Have questions? don't hesitate to contact us.</p>
+            <form id="contactForm">
+                <div class="input-group">
+                    <label>User name</label>
+                    <input type="text" id="nameInput" placeholder="Enter User name..." required>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="emailInput" placeholder="Enter Email..." required>
+                </div>
+                <div class="input-group">
+                    <label>Phone</label>
+                    <input type="tel" id="phoneInput" placeholder="Enter Your Number...">
+                </div>
+                <div class="input-group">
+                    <label>Message</label>
+                    <textarea id="msgInput" placeholder="Enter Your Message..." required></textarea>
+                </div>
+                <button type="submit" class="send-btn">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Section -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="footer-logo">Edu<span>Phin</span></div>
+                <p>EduPhin excels at providing exceptional educational experiences. We are committed to helping students achieve their full potential.</p>
+                <div class="social-icons">
+                    <i class="fab fa-facebook-f"></i>
+                    <i class="fab fa-twitter"></i>
+                    <i class="fab fa-instagram"></i>
+                    <i class="fab fa-linkedin-in"></i>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Category</h4>
+                <a href="/courses/All">Frontend Development</a>
+                <a href="/courses/All">Backend Development</a>
+                <a href="/courses/All">Database Management</a>
+                <a href="/courses/All">Tools</a>
+                <a href="/courses/All">Deployment</a>
+                <a href="/courses/All">Design </a>
+            </div>
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <p><i class="fas fa-phone-alt" style="margin-right: 8px;"></i> (+213) 550-125-345</p>
+                <p><i class="fas fa-phone-alt"></i> (+213) 31-012-789</p>
+                <p><i class="fas fa-envelope"></i> EduPhinInfo@gmail.com</p>
+                <p><i class="fas fa-link"></i> www.eduphin.com</p>
+            </div>
+            <div class="footer-col">
+                <h4>Subscribe Here</h4>
+                <div class="subscribe-form">
+                  <a href="/register">  <button id="subscribeBtn" class="send-btn">Subscribe Now</button></a>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 Eduphin. All Rights Reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- Toast Notification -->
+<div id="toastMsg" class="toast-msg">✨ Message sent! </div>
+
+<script>
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = message;
+        toast.style.backgroundColor = isSuccess ? '#0f3b5c' : '#b91c1c';
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.style.backgroundColor = '#0f3b5c';
+        }, 3000);
+    }
+
+    const contactForm = document.getElementById('contactForm');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('nameInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const message = document.getElementById('msgInput').value.trim();
+
+            if (!name || !email || !message) {
+                showToast('Please fill in all required fields (Name, Email, Message).', false);
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showToast('Invalid email address.', false);
+                return;
+            }
+
+            console.log(`Message de ${name} (${email}, ${phone}) : ${message}`);
+            showToast('Thank you, your message has been sent!');
+            contactForm.reset();
+        });
+    }
+
+    const contactBtn = document.getElementById('contactUsTodayBtn');
+
+    if (contactBtn) {
+        contactBtn.addEventListener('click', function () {
+            const formSection = document.querySelector('.form-card');
+
+            if (formSection) {
+                formSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast('Fill out the form below to contact us!');
+            }
+        });
+    }
+
+    const phoneNumbers = document.querySelectorAll('.phone-group span, .footer-col p i.fa-phone-alt');
+
+    phoneNumbers.forEach(el => {
+        if (el.parentElement && el.parentElement.innerText.includes('(+213)')) {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => {
+                let phoneText = e.target.innerText || e.target.parentElement.innerText;
+                phoneText = phoneText.replace(/\D/g, '');
+
+                if (phoneText.length > 5) {
+                    navigator.clipboard.writeText(phoneText);
+                    showToast(`Phone number ${phoneText} copied!`);
+                }
+            });
+        }
+    });
+
+    const emailLinks = document.querySelectorAll('.detail-item a[href^="mailto"]');
+    emailLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const emailAddr = link.innerText;
+            navigator.clipboard.writeText(emailAddr);
+            showToast(`Email address ${emailAddr} copied!`);
+        });
+    });
+</script>
+</body>
+</html>

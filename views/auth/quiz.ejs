@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title><%= quiz?.title || "Quiz" %></title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    padding: 30px;
+}
+
+.quiz-container {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.question-box {
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.question-box h4 {
+    margin-bottom: 10px;
+}
+
+.option {
+    display: block;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.submit-btn {
+    background: #4CAF50;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background: #45a049;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="quiz-container">
+
+    <!-- TITLE -->
+    <h2>🧠 <%= quiz?.title || "Quiz" %></h2>
+    <p>Answer all questions and submit to get your level</p>
+
+    <!-- FORM -->
+    <form action="/quiz/submit" method="POST">
+
+        <!-- hidden IDs -->
+        <input type="hidden" name="courseId" value="<%= courseId %>">
+        <input type="hidden" name="quizId" value="<%= quiz._id %>">
+
+        <!-- QUESTIONS -->
+        <% (quiz.questions || []).forEach((q, index) => { %>
+
+        <div class="question-box">
+
+            <h4>
+                Q<%= index + 1 %>: <%= q.question %>
+            </h4>
+
+            <% (q.options || []).forEach((opt, i) => { %>
+
+            <label class="option">
+
+                <input 
+                    type="radio"
+                    name="answers[<%= index %>]"
+                    value="<%= i %>"
+                    required
+                />
+
+                <%= opt %>
+
+            </label>
+
+            <% }) %>
+
+        </div>
+
+        <% }) %>
+
+        <!-- SUBMIT -->
+        <button 
+            class="submit-btn"
+            type="submit"
+            onclick="this.innerText='Calculating...'"
+        >
+            Submit Quiz
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courses - Eduphin</title>
+<link rel="stylesheet" href="/Style/courses.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="page-container">
+
+<div class="sidebar">
+  <div class="logo">
+    <img src="/img/logoBleu.png" class="logo-img" alt="Eduphin logo">
+    <span>My Courses</span>
+  </div>
+  <div class="menu">
+    <ul>
+      <li class="active"><a href="/courses/All">All Courses</a></li>
+      <li><a href="/studentDashboard/">Dashboard</a></li>
+      <li><a href="/favoriteCourses/All">Favorite Courses</a></li>
+      <li><a href="/profile/Profile-view">My Profile</a></li>
+    </ul>
+  </div>
+  <br><br><br><br><br><br><br>
+  <a href="/home">
+    <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+  </a>
+</div>
+
+<div class="main">
+
+<div class="main-header">
+  <h2>Courses <span>Dashboard</span></h2>
+  <div class="header-actions">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search courses...">
+    <div class="buttons">
+      <a href="/App/notifications" class="notif-btn">
+        <button class="icon-btn">🔔 <span class="notif-badge">0</span></button>
+      </a>
+      <button class="icon-btn" id="chatBtn">💬</button>
+      <a href="/profile/Profile-view">
+        <button class="icon-btn">👤</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="filter-buttons">
+  <button onclick="filterCourses('all', this)" class="active-filter">All</button>
+  <button onclick="filterCourses('frontend', this)">Frontend</button>
+  <button onclick="filterCourses('backend', this)">Backend</button>
+  <button onclick="filterCourses('database', this)">Database</button>
+  <button onclick="filterCourses('tools', this)">Tools</button>
+  <button onclick="filterCourses('design', this)">Design</button>
+  <button onclick="filterCourses('deployment', this)">Deployment</button>
+</div>
+
+<div class="courses-container" id="coursesContainer">
+<% courses.forEach(course => { %>
+
+<div class="item" data-category="<%= course.category %>">
+  <button class="heart-btn <%= favoriteIds.includes(String(course._id)) ? 'active' : '' %>"
+          data-id="<%= course._id %>"
+          onclick="toggleFavorite('<%= course._id %>', this)">
+    <i class="fas fa-heart"></i>
+  </button>
+  <img src="<%= course.image %>" class="course-img" alt="<%= course.Title %>">
+  <h3><%= course.Title %></h3>
+  <p><%= course.Description %></p>
+  <div class="card-divider"></div>
+  <div class="star-rating" data-course="<%= course._id %>"></div>
+  <div class="rating-label">Tap to rate</div>
+  <button class="view-details-btn" onclick="viewCourseDetails('<%= course.slug %>')">
+    <i class="fas fa-play-circle"></i> View Details
+  </button>
+</div>
+
+<% }) %>
+</div>
+</div>
+</div>
+
+<div class="fav-toast" id="favToast"></div>
+<div class="footer">© 2026 Eduphin. All rights reserved.</div>
+
+<script>
+// ── Favorites ─────────────────────────────────────────────────────────────────
+// FIX: favoriteIds must be passed by the courses controller (see courses controller fix)
+const favoriteIdsFromServer = <%- JSON.stringify(Array.isArray(favoriteIds) ? favoriteIds : []) %>;
+
+function setHeartState(btn, isFavorite) {
+  btn.classList.toggle('active', !!isFavorite);
+  // small pop animation on every state change
+  btn.classList.remove('heart-pop');
+  void btn.offsetWidth; // reflow to restart animation
+  btn.classList.add('heart-pop');
+}
+
+// FIX: only one definition of showToast (duplicate removed below)
+function showToast(msg) {
+  const toast = document.getElementById('favToast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+async function toggleFavorite(id, btn) {
+  try {
+    const res = await fetch('/favoriteCourses/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId: id }),
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status}: ${txt}`);
+    }
+
+    const data = await res.json();
+    if (!data.success && data.isFavorite === undefined) {
+      throw new Error(data.message || 'Toggle failed');
+    }
+
+    const isFavorite = !!data.isFavorite;
+    setHeartState(btn, isFavorite);
+    showToast(isFavorite ? 'Added to favorites ❤️' : 'Removed from favorites');
+
+    // Keep in-memory list in sync
+    const idStr = String(id);
+    if (isFavorite) {
+      if (!favoriteIdsFromServer.includes(idStr)) favoriteIdsFromServer.push(idStr);
+    } else {
+      const idx = favoriteIdsFromServer.indexOf(idStr);
+      if (idx !== -1) favoriteIdsFromServer.splice(idx, 1);
+    }
+
+    // Re-sync ALL hearts in case the same course appears more than once
+    syncHearts();
+
+  } catch (err) {
+    console.error(err);
+    showToast('Favorite update failed');
+  }
+}
+
+function syncHearts() {
+  const set = new Set(favoriteIdsFromServer.map(id => String(id).trim()));
+  document.querySelectorAll('.heart-btn').forEach(btn => {
+    const id = String(btn.getAttribute('data-id')).trim();
+    btn.classList.toggle('active', set.has(id));
+  });
+}
+
+// ── Ratings ───────────────────────────────────────────────────────────────────
+const ratingText = { 0:'Tap to rate', 1:'Poor', 2:'Fair', 3:'Good', 4:'Very Good', 5:'Excellent 🎉' };
+
+async function buildStars(container) {
+  const id = container.dataset.course;
+  const label = container.nextElementSibling;
+
+  let saved = 0, average = 0, ratingsCount = 0;
+
+  try {
+    const res = await fetch(`/courses/api/rating/${id}`);
+    const data = await res.json();
+    if (data.success) {
+      saved        = Number(data.userRating    || 0);
+      average      = Number(data.averageRating || 0);
+      ratingsCount = Number(data.ratingsCount  || 0);
+    }
+  } catch (err) {
+    console.log('Error loading rating');
+  }
+
+  container.innerHTML = '';
+
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement('span');
+    star.innerHTML = '★';
+    star.dataset.value = i;
+    star.classList.add('star');
+    if (i <= saved) star.classList.add('filled');
+
+    star.addEventListener('mouseenter', () => {
+      highlightStars(container, i);
+      label.textContent = ratingText[i];
+    });
+
+    star.addEventListener('mouseleave', () => {
+      highlightStars(container, saved);
+      label.textContent = saved
+        ? `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`
+        : `Tap to rate • Avg ${average.toFixed(1)} (${ratingsCount})`;
+    });
+
+    star.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/courses/api/rate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courseId: id, rating: i })
+        });
+        const data = await response.json();
+        if (data.success) {
+          saved        = Number(data.userRating    || i);
+          average      = Number(data.averageRating || 0);
+          ratingsCount = Number(data.ratingsCount  || 0);
+          highlightStars(container, saved);
+          label.textContent = `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`;
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error sending rating');
+      }
+    });
+
+    container.appendChild(star);
+  }
+
+  highlightStars(container, saved);
+  label.textContent = saved
+    ? `${ratingText[saved]} • Avg ${average.toFixed(1)} (${ratingsCount})`
+    : `Tap to rate • Avg ${average.toFixed(1)} (${ratingsCount})`;
+}
+
+function highlightStars(container, val) {
+  container.querySelectorAll('.star').forEach(star => {
+    star.classList.toggle('filled', parseInt(star.dataset.value) <= val);
+  });
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function viewCourseDetails(slug) {
+  window.location.href = '/courses/course/' + slug;
+}
+
+// ── Filter & Search ───────────────────────────────────────────────────────────
+const items = document.querySelectorAll('.item');
+
+function filterCourses(cat, btn) {
+  document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  // FIX: restore 'flex' instead of '' so cards keep their flex layout
+  items.forEach(item => {
+    item.style.display = (cat === 'all' || item.dataset.category === cat) ? 'flex' : 'none';
+  });
+}
+
+document.getElementById('searchInput').addEventListener('keyup', function () {
+  const val = this.value.toLowerCase();
+  items.forEach(item => {
+    // FIX: restore 'flex' to match card layout
+    item.style.display = item.textContent.toLowerCase().includes(val) ? 'flex' : 'none';
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.star-rating').forEach(buildStars);
+  syncHearts();
+});
+</script>
+
+<script src="//code.tidio.co/ihlzjyy4poj2j2yjxbswichcqxzfdlfk.js" async></script>
+<script>
+document.addEventListener('tidioChat-ready', function () {
+  document.getElementById('chatBtn').addEventListener('click', function () {
+    window.tidioChatApi.open();
+  });
+});
+</script>
+<script src="/js/notifications.js"></script>
+
+</body>
+</html>

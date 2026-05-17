@@ -1,0 +1,139 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Profile</title>
+  <link rel="stylesheet" href="/Style/Profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+  <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <span>My Profile</span>
+        </div>
+   <div class="menu">
+            <ul>
+                  <li class="active">My Profile</li>
+                <li><a href="/teacherDashboard/get">Home</a></li>
+                 <li><a href="/App/createCourse">Create Course </a></li>
+                <li><a href="/App/studentAnalytics">Student Analytics</a></li>
+            </ul>
+        </div>
+        <br> <br> <br> <br> <br>
+    <a href="/home">
+     <button class="logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button>
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <h2>Teacher <span>Profile</span></h2>
+
+    
+    <form class="profile-form" method="POST" action="/profile/edit" enctype="multipart/form-data">
+      
+
+      <div class="profile-header">
+        <div class="profile-info">
+          <div class="avatar-container">
+            <img id="profileImage" class="avatar" src="https://via.placeholder.com/90" alt="Profile">
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;" name="profilePicture">
+          </div>
+          
+          <div class="user-details">
+            <input type="text" class="username-input" placeholder="Enter username" value="Professor" name="username">
+            <textarea class="bio-input" placeholder="Write a short teaching bio..." name="bio">Experienced teacher passionate about helping students learn and grow. Specialized in computer science and adaptive learning.</textarea>
+          </div>
+        </div>
+
+        <div class="header-buttons">
+          <button type="button" class="upload" onclick="document.getElementById('imageUpload').click();">Upload New Photo</button>
+          <button type="button" class="delete" id="deleteImage">Delete</button>
+        </div>
+      </div>
+      
+      <!-- Personal Information Box -->
+      <div class="info-box">
+        <div class="box-header">
+          <h3 class="box-title">Personal Information</h3>
+          <span class="box-icon">👤</span>
+        </div>
+        <div class="box-content">
+          <div class="row">
+            <div class="input-group">
+              <label>First Name</label>
+              <input type="text" placeholder="Enter first name" name="firstName">
+            </div>
+
+            <div class="input-group">
+              <label>Last Name</label>
+              <input type="text" placeholder="Enter last name" name="lastName">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>User Name</label>
+            <input type="text" placeholder="Enter username" name="userName">
+          </div>
+
+          <div class="row">
+            <div class="input-group">
+              <label>Email Address</label>
+              <input type="email" placeholder="Enter email" name="email">
+            </div>
+
+            <div class="input-group">
+              <label>Phone Number</label>
+              <input type="text" placeholder="Enter phone number" name="PhoneNumber">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills & Track Box -->
+
+      <div class="form-buttons">
+        <button type="button" class="cancel">Cancel</button>
+        <button type="submit" class="save">Save</button>
+      </div>
+
+    </form>
+     <!-- FOOTER -->
+        <div class="footer">© 2026 Eduphin. All Rights Reserved.</div>
+
+  </div>
+
+</div>
+
+<script>
+  // JavaScript for image upload
+  document.getElementById('imageUpload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('profileImage').src = e.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Delete image
+  document.getElementById('deleteImage').addEventListener('click', function() {
+    document.getElementById('profileImage').src = 'https://via.placeholder.com/90';
+    document.getElementById('imageUpload').value = '';
+  });
+
+
+</script>
+<% if (typeof error !== "undefined") { %>
+<script>
+  alert("<%= error %>");
+</script>
+<% } %>
+</body>
+</html>

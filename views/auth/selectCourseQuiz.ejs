@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Select Course for Quiz</title>
+
+<style>
+
+body {
+font-family: Arial;
+background: #f5f6fa;
+padding: 30px;
+}
+
+.container {
+max-width: 800px;
+margin: auto;
+background: white;
+padding: 30px;
+border-radius: 10px;
+box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+text-align: center;
+margin-bottom: 25px;
+}
+
+.course-list {
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+
+.course-card {
+background: #f9f9f9;
+padding: 15px;
+border-radius: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+transition: 0.3s;
+}
+
+.course-card:hover {
+background: #eef5ff;
+transform: scale(1.02);
+}
+
+.course-title {
+font-weight: bold;
+font-size: 16px;
+}
+
+button {
+background: #4CAF50;
+color: white;
+border: none;
+padding: 10px 15px;
+border-radius: 6px;
+cursor: pointer;
+}
+
+button:hover {
+background: #45a049;
+}
+
+.empty {
+text-align: center;
+color: gray;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Select Course</h2>
+
+<% if (courses && courses.length > 0) { %>
+
+<div class="course-list">
+
+<% courses.forEach(course => { %>
+
+<div class="course-card">
+
+<div class="course-title">
+<%= course.Title %>
+</div>
+
+<a href="/teacherDashboard/createQuiz/<%= course._id %>">
+<button>
+Create Quiz
+</button>
+</a>
+
+</div>
+
+<% }) %>
+
+</div>
+
+<% } else { %>
+
+<div class="empty">
+No courses available
+</div>
+
+<% } %>
+
+</div>
+
+</body>
+</html>
