@@ -195,7 +195,7 @@ async function runNotificationAgent() {
   }
 
   console.log(`Done! Sent: ${sent} | Skipped: ${students.length - sent}`);
-  await mongoose.disconnect();
+  
 }
 
 export { runNotificationAgent };
