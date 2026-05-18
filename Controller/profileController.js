@@ -8,15 +8,13 @@ const createProfile = async (req, res,next) => {
     try {
         console.log(req.file);
         const { email, firstName, lastName, userName, PhoneNumber, mainTrack, skillLevel,bio } = req.body;
-        // verify if the user exists(has an account) before creating the profile
-        const user = await userModel.findById(req.id);  // req.id is the user id that we attached to the request object in the authRequest middleware after verifying the token
+        const user = await userModel.findById(req.id);
 
         if(!user) return res.render("auth/createProfile",{error: "User not found. Please create an account first."});
-        // check if the profile already exists for the user
         const existingProfile = await profileModel.findOne({user: req.id});
         if(existingProfile) return res.render("auth/createProfile",{error: "Profile already exists" });
 
-        const profilePicturePath = req.file ? `/uploads/${req.file.filename}` : undefined;
+        const profilePicturePath = req.file ? req.file.path : undefined;
 
         const profile = new profileModel({
             user: user._id,
@@ -49,12 +47,11 @@ const createProfile = async (req, res,next) => {
 const editProfile = async (req, res,next) => {
     try {
         const { email, firstName, lastName, userName, PhoneNumber, mainTrack, skillLevel,bio } = req.body;
-        // verify if the profile exists before editing it else render the create profile page with an error message prompting the user to create a profile first
         const profile = await profileModel.findOne({user: req.id});
         if(!profile) return res.render("auth/editProfile",{error: "Profile not found. Please create a profile first."});
 
         if(req.file) {
-            profile.profilePicture = `/uploads/${req.file.filename}`;
+            profile.profilePicture = req.file.path;
         }
         profile.email = email;
         profile.firstName = firstName;
@@ -84,14 +81,12 @@ const viewProfile = async (req, res) => {
         const profile = await profileModel.findOne({ user: req.id });
 
         if (!profile) {
-            // if the profile is not found render the create profile page with an error message prompting the user to create a profile first
             if (req.role === "teacher") {
-                return res.render("auth/createProfileTeacher", { error: "Profile not found. Please create a profile first." });
+                return res.render("auth/createProfileTeacher", { error: null });
             } else {      
-                return res.render("auth/createProfile");
+                return res.render("auth/createProfile", { error: null });
             }
         }
-        // if the user is a teacher render the teacher profile view otherwise render the student profile view
         if (req.role === "teacher") {
             return res.render("auth/viewProfileTeacher", { profile });
         } else {
@@ -100,7 +95,7 @@ const viewProfile = async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        return res.render("auth/editProfile");
+        return res.render("auth/editProfile", { error: null });
     }
 };
 
