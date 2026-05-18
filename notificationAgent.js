@@ -139,7 +139,9 @@ async function runAgentForStudent(student, stats, scoreData, courseDetails) {
 
 async function runNotificationAgent() {
   console.log("Connecting to:", process.env.NAME_DB);
-  await mongoose.connect(process.env.NAME_DB);
+  if (mongoose.connection.readyState !== 1) {
+    await mongoose.connect(process.env.NAME_DB);
+}
   console.log("Connected to MongoDB. Agent starting...");
 
   const students = await userModel.find({ role: "student" });
