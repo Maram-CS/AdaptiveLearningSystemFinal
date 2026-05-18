@@ -38,8 +38,9 @@ const createProfile = async (req, res,next) => {
           }
           
     } catch(err) {
-        console.error(err);
-        res.render("auth/createProfile",{error: "Error creating profile. Please try again by filling all the required fields."});  
+        console.error("CREATE PROFILE ERROR:", err.message);
+        console.error("STACK:", err.stack);
+        res.status(500).send("Error: " + err.message);
     }
 };
 
@@ -70,8 +71,9 @@ const editProfile = async (req, res,next) => {
           }
         
     } catch(err) {
-        console.error(err);
-        res.render("auth/editProfile",{error: "Error updating profile. Please try again by filling all the required fields."});
+        console.error("EDIT PROFILE ERROR:", err.message);
+        console.error("STACK:", err.stack);
+        res.status(500).send("Error: " + err.message);
     }
 };
 
@@ -94,8 +96,8 @@ const viewProfile = async (req, res) => {
         }
 
     } catch (err) {
-        console.error(err);
-        return res.render("auth/editProfile", { error: null });
+        console.error("VIEW PROFILE ERROR:", err.message);
+        res.status(500).send("Error: " + err.message);
     }
 };
 
