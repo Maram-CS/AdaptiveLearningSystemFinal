@@ -196,4 +196,4 @@ async function runNotificationAgent() {
   await mongoose.disconnect();
 }
 
-runNotificationAgent();
+export { runNotificationAgent };
