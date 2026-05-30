@@ -175,8 +175,15 @@ const getCourseBySlug = async (req, res) => {
 
         if (!course) return res.status(404).json({ message: "Course not found" });
 
-        if (req.role === "student") return res.render("auth/courseDetailStudent", { course });
-        return res.render("auth/editCourse", { course });
+        if (req.role === "student") {
+            return res.redirect(`/courses/course/${course.slug}`);
+        }
+
+        if (req.role === "teacher") {
+            return res.render("auth/editCourse", { course });
+        }
+
+        return res.status(403).send("Unauthorized access");
 
     } catch (err) {
         return res.status(500).json({ message: "Internal server error" });

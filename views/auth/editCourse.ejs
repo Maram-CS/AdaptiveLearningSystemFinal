@@ -477,6 +477,9 @@ if (editForm) {
             
             const response = await fetch(actionUrl, {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                },
                 body: formData
             });
             
@@ -485,16 +488,26 @@ if (editForm) {
                 setTimeout(() => {
                     window.location.href = response.url;
                 }, 1500);
-            } else if (response.ok) {
+                return;
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            if (response.ok && contentType.includes('application/json')) {
                 const data = await response.json();
                 showToast('✅ Course updated successfully!');
                 setTimeout(() => {
                     window.location.href = '/teacherDashboard/get';
                 }, 1500);
-            } else {
+                return;
+            }
+
+            if (!response.ok && contentType.includes('application/json')) {
                 const error = await response.json();
                 throw new Error(error.message || 'Failed to update course');
             }
+
+            const text = await response.text();
+            throw new Error('Unexpected server response: ' + text.substring(0, 120));
         } catch (err) {
             console.error(err);
             showToast('❌ ' + err.message, true);
